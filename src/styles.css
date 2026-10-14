@@ -1,0 +1,66 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-display: 'Barlow Condensed', sans-serif;
+  --font-mono: 'Share Tech Mono', ui-monospace, monospace;
+
+  --color-ink: #14101c;
+  --color-panel: #221c2e;
+  --color-panel-2: #2c2538;
+  --color-muted: #b6aec8;
+  --color-soft: #d6d0e2;
+  --color-pink: oklch(0.66 0.27 350);
+  --color-pink-deep: oklch(0.55 0.25 350);
+  --color-lime: oklch(0.88 0.18 105);
+  --color-cyan: oklch(0.8 0.15 220);
+  --color-go: oklch(0.72 0.19 145);
+  --color-stop: oklch(0.62 0.22 27);
+  --color-bili: #9b94ad;
+  --color-road: #ffc83a;
+}
+
+@utility hex {
+  clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%);
+}
+
+@utility map-corners {
+  clip-path: polygon(0 0, calc(100% - 28px) 0, 100% 28px, 100% 100%, 28px 100%, 0 calc(100% - 28px));
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-ink font-display text-white antialiased;
+  }
+}
+
+@keyframes route-dash {
+  to {
+    stroke-dashoffset: -4;
+  }
+}
+@keyframes pin-pulse {
+  0% {
+    transform: scale(0.45);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1.15);
+    opacity: 0;
+  }
+}
+.animate-route-dash {
+  animation: route-dash 1.1s linear infinite;
+}
+.animate-pin-pulse {
+  animation: pin-pulse 2.2s ease-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-route-dash,
+  .animate-pin-pulse {
+    animation: none;
+  }
+}
