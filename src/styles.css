@@ -30,6 +30,13 @@
 @layer base {
   html {
     scroll-behavior: smooth;
+    /* Anchored sections land below the fixed (shrunk) header. */
+    scroll-padding-top: 124px;
+    --header-h: 158px;
+    @variant md {
+      --header-h: 106px;
+      scroll-padding-top: 72px;
+    }
   }
   body {
     @apply bg-ink font-display text-white antialiased;
