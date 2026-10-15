@@ -1,3 +1,4 @@
+import { ArrowLeft, ArrowRight } from 'lucide-react'
 import { Link, createFileRoute, notFound, useNavigate } from '@tanstack/react-router'
 import type { CSSProperties } from 'react'
 import { Footer } from '~/components/Footer'
@@ -33,8 +34,8 @@ export const Route = createFileRoute('/shop_/$productId')({
       <Header />
       <div className="px-5 py-20 md:px-(--gutter)">
         <h1 className="text-6xl font-extrabold uppercase italic">Nema tog artikla</h1>
-        <Link to="/shop" className="fh-wipe mt-6 inline-block px-3 py-1.5 text-xl font-extrabold uppercase italic">
-          ← Natrag u shop
+        <Link to="/shop" className="fh-wipe mt-6 inline-flex items-center gap-2 px-3 py-1.5 text-xl font-extrabold uppercase italic">
+          <ArrowLeft size={20} strokeWidth={3} aria-hidden="true" /> Natrag u shop
         </Link>
       </div>
     </main>
@@ -94,7 +95,9 @@ function ProductPage() {
             <span>
               <span className="text-lime">KOŠ</span> {count} kom · {total} KM
             </span>
-            <span className="font-extrabold uppercase italic">Na košaricu →</span>
+            <span className="flex items-center gap-1.5 font-extrabold uppercase italic">
+              Na košaricu <ArrowRight size={18} strokeWidth={3} aria-hidden="true" />
+            </span>
           </Link>
         </div>
       </div>

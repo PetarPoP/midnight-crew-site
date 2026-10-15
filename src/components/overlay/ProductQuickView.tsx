@@ -1,9 +1,10 @@
+import { ArrowUpRight, Plus } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
 import type { Product } from '~/lib/data'
 import { ProductPhoto } from '../ProductPhoto'
 import { BuyBox } from '../shop/BuyBox'
 import { PadPrompt } from '../ui'
-import { Modal, MoreMenu, ShareButton } from './Modal'
+import { MENU_ITEM, Modal, MoreMenu, ShareButton } from './Modal'
 
 /** Product details in a centred dialog, opened from any product card. */
 export function ProductQuickView({ product: p, onClose }: { product: Product; onClose: () => void }) {
@@ -18,11 +19,12 @@ export function ProductQuickView({ product: p, onClose }: { product: Product; on
               to="/shop/$productId"
               params={{ productId: p.id }}
               search={{}}
-              className="fh-wipe px-3 py-1.5 font-extrabold italic"
+              className={MENU_ITEM}
             >
-              Cijela stranica →
+              <ArrowUpRight size={20} strokeWidth={2.5} aria-hidden="true" className="shrink-0" />
+              Cijela stranica
             </Link>
-            <ShareButton path={`/shop/${p.id}`} title={`${p.name} · Midnight Crew`} />
+            <ShareButton path={`/shop/${p.id}`} title={`${p.name} · Midnight Crew`} className={MENU_ITEM} />
           </MoreMenu>
           <PadPrompt pad="b" onClick={onClose}>
             Zatvori
@@ -48,7 +50,7 @@ export function ProductQuickView({ product: p, onClose }: { product: Product; on
             <details className="group border-t border-white/10 pt-3">
               <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-bold tracking-[.12em] text-muted uppercase hover:text-white">
                 Detalji
-                <span aria-hidden="true" className="text-lg transition-transform group-open:rotate-45">+</span>
+                <Plus size={20} strokeWidth={3} aria-hidden="true" className="transition-transform group-open:rotate-45" />
               </summary>
               <ul className="mt-3 flex flex-col gap-1.5 text-base font-semibold">
                 {p.details.map((d) => (

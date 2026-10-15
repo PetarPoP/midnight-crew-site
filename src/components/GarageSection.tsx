@@ -1,3 +1,4 @@
+import { ArrowLeft, ArrowRight, Camera } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
 import { JoinModal } from './JoinModal'
@@ -85,13 +86,13 @@ export function GarageSection() {
                 </div>
                 <div className="flex shrink-0 items-center gap-2 text-xl font-extrabold italic">
                   <KeyHint label="Prethodni auto" onClick={() => go(-1)}>
-                    ←
+                    <ArrowLeft size={16} strokeWidth={3} aria-hidden="true" />
                   </KeyHint>
                   <span className="min-w-[4ch] text-center tabular-nums">
                     {i + 1}/{n}
                   </span>
                   <KeyHint label="Sljedeći auto" onClick={() => go(1)}>
-                    →
+                    <ArrowRight size={16} strokeWidth={3} aria-hidden="true" />
                   </KeyHint>
                 </div>
               </div>
@@ -230,30 +231,23 @@ function CarImage({ car, small = false }: { car: Car; small?: boolean }) {
         alt={`${car.car}, ${car.owner}`}
         loading={small ? 'lazy' : 'eager'}
         draggable={false}
-        className={`mx-auto max-h-full w-full object-contain ${small ? 'h-full' : 'drop-shadow-[0_28px_28px_rgba(0,0,0,.65)]'}`}
+        className={`mx-auto object-contain ${small ? 'h-full w-full' : 'max-h-[min(42vh,360px)] w-auto max-w-full drop-shadow-[0_28px_28px_rgba(0,0,0,.65)]'}`}
       />
     )
   }
   return <Silhouette small={small} />
 }
 
+/** Shown until a car gets its photo: no drawn car, just a note. */
 function Silhouette({ small }: { small: boolean }) {
   return (
-    <svg viewBox="0 0 600 200" className={`mx-auto w-full ${small ? 'h-full' : ''}`} role="img" aria-label="Silueta auta, fotka još nije dodana">
-      <path
-        d="M24 142c0-18 26-28 78-36l76-34c26-14 62-22 112-22h92c40 0 70 16 96 46l44 10c24 6 40 18 40 36v6H24z"
-        fill="#2c2538"
-        stroke="rgba(255,255,255,.28)"
-        strokeWidth="2"
-        strokeDasharray="6 5"
-      />
-      <path d="M196 76c22-12 54-18 96-18h82c24 0 44 10 62 30H196z" fill="#161220" opacity=".7" />
-      {[140, 470].map((cx) => (
-        <g key={cx}>
-          <circle cx={cx} cy="150" r="38" fill="#0e0b15" stroke="rgba(255,255,255,.28)" strokeWidth="2" />
-          <circle cx={cx} cy="150" r="20" fill="#2c2538" />
-        </g>
-      ))}
-    </svg>
+    <div
+      role="img"
+      aria-label="Fotka auta još nije dodana"
+      className={`mx-auto flex flex-col items-center justify-center gap-2 text-muted ${small ? 'h-full' : 'aspect-[3/1] w-full'}`}
+    >
+      <Camera size={small ? 22 : 56} strokeWidth={1.5} aria-hidden="true" />
+      {!small && <span className="text-sm font-bold tracking-[.12em] uppercase">Fotka uskoro</span>}
+    </div>
   )
 }

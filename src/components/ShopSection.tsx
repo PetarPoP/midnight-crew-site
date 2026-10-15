@@ -1,3 +1,4 @@
+import { ArrowRight } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
 import type { CSSProperties } from 'react'
 import { PRODUCTS } from '~/lib/data'
@@ -12,8 +13,8 @@ export function ShopSection() {
         id="shop"
         title="Shop"
         meta={
-          <Link to="/shop" className="fh-wipe inline-block px-3 py-1 text-white">
-            OTVORI SHOP →
+          <Link to="/shop" className="fh-wipe inline-flex items-center gap-1.5 px-3 py-1 text-white">
+            OTVORI SHOP <ArrowRight size={18} strokeWidth={3} aria-hidden="true" />
           </Link>
         }
       />

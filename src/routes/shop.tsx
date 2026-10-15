@@ -1,3 +1,4 @@
+import { ArrowRight, Minus, Plus } from 'lucide-react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { createPortal } from 'react-dom'
 import { useState, type CSSProperties } from 'react'
@@ -112,7 +113,9 @@ function ProductCard({ product: p, onOpen }: { product: Product; onOpen: () => v
         <p className="flex-1 text-lg leading-snug text-soft">{p.blurb}</p>
         <div className="flex items-center justify-between text-base font-bold tracking-[.08em] text-muted uppercase">
           <span>{p.sizes.length ? p.sizes.join(' · ') : 'Jedna veličina'}</span>
-          <span className="text-lime transition-transform group-hover:translate-x-1">Pojedinosti →</span>
+          <span className="flex items-center gap-1 text-lime transition-transform group-hover:translate-x-1">
+            Pojedinosti <ArrowRight size={16} strokeWidth={3} aria-hidden="true" />
+          </span>
         </div>
       </div>
     </button>
@@ -154,11 +157,11 @@ function CartPanel() {
                 </div>
                 <div className="flex items-center gap-1">
                   <QtyButton label={`Makni jedan, ${p.name}`} onClick={() => setQty(l.productId, l.size, l.qty - 1)}>
-                    −
+                    <Minus size={16} strokeWidth={3} aria-hidden="true" />
                   </QtyButton>
                   <span className="w-7 text-center font-mono text-lg">{l.qty}</span>
                   <QtyButton label={`Dodaj još jedan, ${p.name}`} onClick={() => setQty(l.productId, l.size, l.qty + 1)}>
-                    +
+                    <Plus size={16} strokeWidth={3} aria-hidden="true" />
                   </QtyButton>
                 </div>
               </li>
@@ -193,7 +196,7 @@ function CartPanel() {
   )
 }
 
-function QtyButton({ label, onClick, children }: { label: string; onClick: () => void; children: string }) {
+function QtyButton({ label, onClick, children }: { label: string; onClick: () => void; children: React.ReactNode }) {
   return (
     <button
       type="button"

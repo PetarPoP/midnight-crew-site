@@ -1,5 +1,6 @@
+import { Check, Crosshair, Flag, Minus, Play, Plus, Square, Star } from 'lucide-react'
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
-import { FILTERS, KIND_COLOR, KIND_GLYPH, LIVNO, MAX_KM, PLACES, TOTAL_KM, eventsAt, formatKm, placeBadge, type FilterKey } from '~/lib/data'
+import { FILTERS, KIND_COLOR, LIVNO, MAX_KM, PLACES, TOTAL_KM, eventsAt, formatKm, placeBadge, type FilterKey } from '~/lib/data'
 import { MAP, project } from '~/lib/mapData'
 import { useCountUp } from '~/lib/useCountUp'
 import { BaseMap } from './map/BaseMap'
@@ -210,7 +211,7 @@ export function MapSection() {
                       className="hex flex h-[46px] w-10 items-center justify-center text-xl font-extrabold text-ink italic"
                       style={{ background: KIND_COLOR[p.k] }}
                     >
-                      {KIND_GLYPH[p.k]}
+                      <KindIcon k={p.k} />
                     </div>
                   </div>
                   <div
@@ -258,13 +259,14 @@ export function MapSection() {
               <span className="absolute -top-1 left-1/2 -translate-x-1/2 rounded bg-ink px-[5px] text-sm font-extrabold">N</span>
             </div>
             <div className="flex flex-col bg-ink/80 text-xl font-extrabold shadow-[inset_0_0_0_2px_rgba(255,255,255,.2)] md:text-2xl">
-              <MapButton label="Približi" onClick={() => map.zoomBy(1.5)}>+</MapButton>
-              <MapButton label="Udalji" onClick={() => map.zoomBy(1 / 1.5)}>−</MapButton>
+              <MapButton label="Približi" onClick={() => map.zoomBy(1.5)}>
+                <Plus size={20} strokeWidth={3} aria-hidden="true" />
+              </MapButton>
+              <MapButton label="Udalji" onClick={() => map.zoomBy(1 / 1.5)}>
+                <Minus size={20} strokeWidth={3} aria-hidden="true" />
+              </MapButton>
               <MapButton label="Vrati na Livno" onClick={() => map.flyTo(START_BOX)}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
-                  <circle cx="12" cy="12" r="4" />
-                  <path d="M12 2v4M12 18v4M2 12h4M18 12h4" />
-                </svg>
+                <Crosshair size={19} strokeWidth={2.5} aria-hidden="true" />
               </MapButton>
             </div>
           </div>
@@ -328,7 +330,11 @@ export function MapSection() {
                     title={`Bedž za ${badge.tier >= 3 ? 'daleke vožnje' : 'vožnje'} od Livna`}
                     className="flex animate-swap-in items-center gap-1.5 bg-ink px-2.5 py-0.5 text-sm tracking-[.08em] text-lime"
                   >
-                    {'★'.repeat(badge.tier)}
+                    <span className="flex" aria-label={`${badge.tier} zvjezdice`}>
+                      {Array.from({ length: badge.tier }, (_, i) => (
+                        <Star key={i} size={13} fill="currentColor" strokeWidth={0} aria-hidden="true" />
+                      ))}
+                    </span>
                     <span className="text-white">{badge.name}</span>
                   </span>
                 </div>
@@ -365,7 +371,7 @@ export function MapSection() {
                 aria-pressed={playing}
                 className={`fh-wipe flex cursor-pointer items-center gap-2 px-3 py-1 text-sm font-extrabold tracking-[.08em] uppercase italic ${playing ? 'text-lime' : 'text-white'}`}
               >
-                <span aria-hidden="true">{playing ? '■' : '▶'}</span>
+                {playing ? <Square size={12} fill="currentColor" strokeWidth={0} aria-hidden="true" /> : <Play size={13} fill="currentColor" strokeWidth={0} aria-hidden="true" />}
                 {playing ? 'Zaustavi' : 'Reprodukcija'}
               </button>
             </div>
@@ -413,4 +419,12 @@ function MapButton({ label, onClick, children }: { label: string; onClick: () =>
       {children}
     </button>
   )
+}
+
+/** Pin icon by event kind: our meet, a meet we go to, a place we have been. */
+function KindIcon({ k }: { k: 'nas' | 'idemo' | 'bili' }) {
+  const p = { size: 20, strokeWidth: 3, 'aria-hidden': true as const }
+  if (k === 'nas') return <Star {...p} fill="currentColor" strokeWidth={0} size={22} />
+  if (k === 'idemo') return <Flag {...p} fill="currentColor" />
+  return <Check {...p} strokeWidth={3.5} />
 }

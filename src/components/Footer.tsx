@@ -1,3 +1,4 @@
+import { ArrowRight, ArrowUp, Diamond } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
 import type { ReactNode } from 'react'
 import { EVENTS, INSTAGRAM_URL, PLACES, SETTINGS, TOTAL_KM, formatKm, upcomingEvents } from '~/lib/data'
@@ -32,7 +33,7 @@ export function Footer() {
               {[...TICKER, ...TICKER].map((t, i) => (
                 <span key={i} className="flex items-center text-xl font-extrabold tracking-wide whitespace-nowrap text-white uppercase italic">
                   <span className="px-5">{t}</span>
-                  <span className="text-ink/60">◆</span>
+                  <Diamond size={14} fill="currentColor" strokeWidth={0} className="text-ink/60" aria-hidden="true" />
                 </span>
               ))}
             </div>
@@ -96,7 +97,7 @@ export function Footer() {
             <div className="mt-3 text-2xl leading-tight font-extrabold text-white uppercase italic">{next.title}</div>
             <div className="mt-1 flex items-center justify-between text-base font-semibold text-muted">
               <span>{next.place}</span>
-              <span className="text-lime transition-transform duration-200 group-hover:translate-x-1">→</span>
+              <span className="text-lime transition-transform duration-200 group-hover:translate-x-1"><ArrowRight size={22} strokeWidth={3} aria-hidden="true" /></span>
             </div>
           </Link>
         </div>
@@ -140,7 +141,7 @@ export function Footer() {
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
             className="flex cursor-pointer items-center gap-2 self-start uppercase transition-colors hover:text-white md:self-auto"
           >
-            Na vrh <span aria-hidden="true">↑</span>
+            Na vrh <ArrowUp size={16} strokeWidth={3} aria-hidden="true" />
           </button>
         </div>
       </div>

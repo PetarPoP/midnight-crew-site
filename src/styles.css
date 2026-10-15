@@ -382,7 +382,7 @@
 @utility garage-untilt {
   transform: skewX(5deg) rotate(1.6deg);
   margin-inline: -3%;
-  padding-inline: 3%;
+  padding-inline: 4.5%;
 }
 
 /* ---- Garage showroom (Forza Horizon style) ---- */

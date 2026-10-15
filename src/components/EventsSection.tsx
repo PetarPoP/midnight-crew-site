@@ -1,3 +1,4 @@
+import { ArrowRight } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
 import { useEffect, type CSSProperties } from 'react'
 import { KIND_COLOR, upcomingEvents } from '~/lib/data'
@@ -48,7 +49,9 @@ export function EventsSection() {
                     className="shrink-0 text-sm font-bold tracking-[.12em] opacity-0 transition-[opacity,translate] duration-200 group-hover:translate-x-1 group-hover:opacity-100 group-focus-visible:opacity-100"
                     style={{ color: KIND_COLOR[e.k] }}
                   >
-                    DETALJI →
+                    <span className="flex items-center gap-1">
+                      DETALJI <ArrowRight size={16} strokeWidth={3} aria-hidden="true" />
+                    </span>
                   </span>
                 </div>
               </div>

@@ -1,10 +1,11 @@
+import { CalendarPlus, Check, MapPin, Plus } from 'lucide-react'
 import { KIND_COLOR, INSTAGRAM_URL, type CrewEvent } from '~/lib/data'
 import { useEffect, useState } from 'react'
 import { downloadIcs } from '~/lib/ics'
 import { loadRsvps, rsvpOpen, toggleRsvp, useRsvp } from '~/lib/rsvp'
 import { useCountdown } from '~/lib/useCountdown'
 import { PadPrompt } from '../ui'
-import { Modal, MoreMenu, ShareButton } from './Modal'
+import { MENU_ITEM, Modal, MoreMenu, ShareButton } from './Modal'
 
 /** Event details in a centred dialog, opened from an event card or ?e=<id>. */
 export function EventQuickView({ event: e, onClose }: { event: CrewEvent; onClose: () => void }) {
@@ -33,13 +34,15 @@ export function EventQuickView({ event: e, onClose }: { event: CrewEvent; onClos
       footer={
         <>
           <MoreMenu>
-            <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className="fh-wipe px-3 py-1.5 font-extrabold italic">
-              Karta →
+            <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className={MENU_ITEM}>
+              <MapPin size={20} strokeWidth={2.5} aria-hidden="true" className="shrink-0" />
+              Karta
             </a>
-            <button type="button" onClick={() => downloadIcs(e)} className="fh-wipe cursor-pointer px-3 py-1.5 font-extrabold italic">
+            <button type="button" onClick={() => downloadIcs(e)} className={MENU_ITEM}>
+              <CalendarPlus size={20} strokeWidth={2.5} aria-hidden="true" className="shrink-0" />
               U kalendar
             </button>
-            <ShareButton path={`/?e=${e.id}`} title={`${e.title} · Midnight Crew`} />
+            <ShareButton path={`/?e=${e.id}`} title={`${e.title} · Midnight Crew`} className={MENU_ITEM} />
           </MoreMenu>
           <PadPrompt pad="b" onClick={onClose}>
             Zatvori
@@ -73,7 +76,7 @@ export function EventQuickView({ event: e, onClose }: { event: CrewEvent; onClos
               className={`flex cursor-pointer items-center gap-3 px-5 py-2.5 text-xl font-extrabold uppercase italic transition active:scale-95 disabled:opacity-60 ${going ? 'bg-lime text-ink' : 'bg-go text-ink hover:brightness-110'}`}
             >
               <span aria-hidden="true" className="pad-glyph flex size-[28px] items-center justify-center rounded-full bg-ink text-base text-white not-italic">
-                {going ? '✓' : 'A'}
+                {going ? <Check size={18} strokeWidth={3.5} /> : 'A'}
               </span>
               {going ? 'Dolaziš' : 'Dolazim'}
             </button>
@@ -87,7 +90,7 @@ export function EventQuickView({ event: e, onClose }: { event: CrewEvent; onClos
         <details className="group border-t border-white/10 pt-3">
           <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-bold tracking-[.12em] text-muted uppercase hover:text-white">
             Više o događaju
-            <span aria-hidden="true" className="text-lg transition-transform group-open:rotate-45">+</span>
+            <Plus size={20} strokeWidth={3} aria-hidden="true" className="transition-transform group-open:rotate-45" />
           </summary>
           <div className="mt-3 flex flex-col gap-2 text-lg leading-snug text-soft">
             {e.description && <p className="max-w-[60ch]">{e.description}</p>}

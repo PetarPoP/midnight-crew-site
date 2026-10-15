@@ -1,3 +1,4 @@
+import { Ellipsis, Share2, X } from 'lucide-react'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 
 /**
@@ -61,7 +62,7 @@ export function Modal({
           aria-label="Zatvori"
           className="absolute top-3 right-3 z-10 flex size-10 cursor-pointer items-center justify-center bg-ink/70 text-3xl leading-none transition hover:bg-white hover:text-ink"
         >
-          ×
+          <X size={24} strokeWidth={3} aria-hidden="true" />
         </button>
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">{children}</div>
         <div className="relative flex items-center justify-between gap-x-4 border-t border-white/10 bg-panel px-4 py-3 text-lg font-bold uppercase md:px-7">
@@ -73,7 +74,7 @@ export function Modal({
 }
 
 /** Shares a link with the system share sheet, or copies it. */
-export function ShareButton({ path, title }: { path: string; title: string }) {
+export function ShareButton({ path, title, className }: { path: string; title: string; className?: string }) {
   const ref = useRef<HTMLButtonElement>(null)
   const onClick = async () => {
     const url = new URL(path, window.location.origin).toString()
@@ -101,12 +102,9 @@ export function ShareButton({ path, title }: { path: string; title: string }) {
       ref={ref}
       type="button"
       onClick={onClick}
-      className="group fh-wipe flex cursor-pointer items-center gap-2 px-3 py-1.5 font-extrabold uppercase italic"
+      className={`group ${className ?? 'fh-wipe flex cursor-pointer items-center gap-2 px-3 py-1.5 font-extrabold uppercase italic'}`}
     >
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden="true">
-        <path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1" />
-        <path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1" />
-      </svg>
+      <Share2 size={20} strokeWidth={2.5} aria-hidden="true" className="shrink-0" />
       <span className="group-data-copied:hidden">Podijeli</span>
       <span className="hidden text-lime group-data-copied:inline">Link kopiran</span>
     </button>
@@ -134,13 +132,13 @@ export function MoreMenu({ children }: { children: ReactNode }) {
         onClick={() => setOpen((o) => !o)}
         className="fh-wipe flex cursor-pointer items-center gap-2 px-3 py-1.5 font-extrabold uppercase italic"
       >
-        Više <span aria-hidden="true" className="text-xl leading-none">⋯</span>
+        Više <Ellipsis size={22} strokeWidth={3} aria-hidden="true" />
       </button>
       {open && (
         <div
           role="menu"
           onClick={(e) => (e.target as HTMLElement).closest('a,button') && setTimeout(() => setOpen(false), 50)}
-          className="animate-swap-in absolute bottom-full left-0 mb-2 flex min-w-[220px] flex-col items-stretch gap-1 bg-ink p-2 shadow-[0_0_0_2px_#fff,0_20px_40px_-10px_rgba(0,0,0,.9)] [&>*]:justify-start"
+          className="animate-swap-in absolute bottom-full left-0 mb-2 flex w-[240px] flex-col divide-y divide-white/10 bg-ink shadow-[0_0_0_2px_#fff,0_20px_40px_-10px_rgba(0,0,0,.9)]"
         >
           {children}
         </div>
@@ -148,3 +146,7 @@ export function MoreMenu({ children }: { children: ReactNode }) {
     </div>
   )
 }
+
+/** One row of the "Više" menu: icon on the left, label, same size for every row. */
+export const MENU_ITEM =
+  'flex w-full cursor-pointer items-center gap-3 px-4 py-3 text-left text-lg font-extrabold text-white uppercase italic no-underline transition-colors hover:bg-white hover:text-ink focus-visible:bg-white focus-visible:text-ink focus-visible:outline-none'

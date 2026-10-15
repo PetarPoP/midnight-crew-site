@@ -1,12 +1,12 @@
 {
-  "car": "Demo: BMW 330i",
+  "car": "Demo: BMW M3",
   "owner": "Ime člana",
   "instagram": "",
   "year": 2008,
   "hp": 420,
-  "torque": 480,
+  "torque": 400,
   "drivetrain": "rwd",
-  "note": "Demo auto. Zamijeni ga pravim autom u CMS-u.",
-  "image": "/images/garage/demo-sedan.svg",
+  "note": "Demo auto. Zamijeni ga pravim autom ekipe u CMS-u.",
+  "image": "/images/garage/demo-bmw-m3.webp",
   "order": 1
 }

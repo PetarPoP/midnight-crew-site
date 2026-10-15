@@ -77,7 +77,6 @@ export const KIND_COLOR: Record<Kind, string> = {
   idemo: 'var(--color-cyan)',
   bili: 'var(--color-bili)',
 }
-export const KIND_GLYPH: Record<Kind, string> = { nas: '★', idemo: '⚑', bili: '✓' }
 
 // Destinations (src/content/places). Distances, drive times and route shapes
 // are real driving routes from Livno, cached by scripts/fetch-routes.mjs.

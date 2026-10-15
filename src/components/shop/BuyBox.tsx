@@ -1,3 +1,4 @@
+import { Check } from 'lucide-react'
 import { useState } from 'react'
 import type { Product } from '~/lib/data'
 import { useCart } from '~/lib/cart'
@@ -47,7 +48,13 @@ export function BuyBox({ product: p, padKey = false }: { product: Product; padKe
         }`}
       >
         {padKey && !justAdded && <PadButton letter="A" className="bg-go text-white" />}
-        {justAdded ? 'Dodano ✓' : `Dodaj u košaricu${size ? ` · ${size}` : ''}`}
+        {justAdded ? (
+          <>
+            Dodano <Check size={24} strokeWidth={3.5} aria-hidden="true" />
+          </>
+        ) : (
+          `Dodaj u košaricu${size ? ` · ${size}` : ''}`
+        )}
       </button>
     </div>
   )
