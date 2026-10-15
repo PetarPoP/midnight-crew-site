@@ -1,0 +1,171 @@
+"""Builds src/lib/mapData.ts from Natural Earth 1:10m data and OSRM routes.
+
+Usage:
+  python3 scripts/build-map.py <dir with Natural Earth 10m geojson files>
+
+Needs: shapely. Natural Earth files (from github.com/nvkelso/natural-earth-vector/geojson):
+  ne_10m_land, ne_10m_minor_islands, ne_10m_lakes_europe, ne_10m_rivers_europe,
+  ne_10m_rivers_lake_centerlines, ne_10m_admin_0_boundary_lines_land, ne_10m_roads
+Routes come from scripts/routes.json (OSRM driving routes from Livno).
+"""
+import json
+import math
+import sys
+from pathlib import Path
+
+from shapely.geometry import box, shape, LineString
+from shapely.ops import unary_union
+
+NE = Path(sys.argv[1])
+ROOT = Path(__file__).resolve().parent.parent
+
+# Map extent and projection (Web Mercator, K px per degree of longitude).
+LON0, LON1, LAT0, LAT1 = 14.6, 19.7, 42.45, 46.35
+K = 400
+
+
+def merc(lat):
+    return math.degrees(math.log(math.tan(math.pi / 4 + math.radians(lat) / 2)))
+
+
+Y_TOP = merc(LAT1)
+W = round((LON1 - LON0) * K)
+H = round((Y_TOP - merc(LAT0)) * K)
+
+
+def proj(lon, lat):
+    return ((lon - LON0) * K, (Y_TOP - merc(lat)) * K)
+
+
+BBOX = box(LON0 - 0.3, LAT0 - 0.3, LON1 + 0.3, LAT1 + 0.3)
+
+
+def load(name):
+    return json.load(open(NE / f"{name}.geojson"))["features"]
+
+
+def clipped(name, pred=lambda p: True):
+    out = []
+    for f in load(name):
+        if not pred(f["properties"]):
+            continue
+        g = shape(f["geometry"])
+        if g.intersects(BBOX):
+            out.append((f["properties"], g.intersection(BBOX)))
+    return out
+
+
+def fmt(v):
+    return f"{v:.1f}".rstrip("0").rstrip(".")
+
+
+def ring_d(coords, close):
+    pts = [proj(x, y) for x, y in coords]
+    s = "M" + " L".join(f"{fmt(x)},{fmt(y)}" for x, y in pts)
+    return s + ("Z" if close else "")
+
+
+def path_d(geom, tol):
+    """SVG path data for a (projected, simplified) geometry."""
+    parts = []
+    geoms = getattr(geom, "geoms", [geom])
+    for g in geoms:
+        g = g.simplify(tol / K, preserve_topology=True)
+        if g.is_empty:
+            continue
+        if g.geom_type == "Polygon":
+            parts.append(ring_d(g.exterior.coords, True))
+            parts += [ring_d(r.coords, True) for r in g.interiors]
+        elif g.geom_type == "MultiPolygon":
+            parts.append(path_d(g, tol))
+        elif g.geom_type == "LineString":
+            if len(g.coords) > 1:
+                parts.append(ring_d(g.coords, False))
+        elif g.geom_type == "MultiLineString":
+            parts.append(path_d(g, tol))
+    return "".join(parts)
+
+
+def decode_polyline(s):
+    pts, i, lat, lng = [], 0, 0, 0
+    while i < len(s):
+        vals = []
+        for _ in range(2):
+            r = sh = 0
+            while True:
+                b = ord(s[i]) - 63
+                i += 1
+                r |= (b & 0x1F) << sh
+                sh += 5
+                if b < 0x20:
+                    break
+            vals.append(~(r >> 1) if r & 1 else r >> 1)
+        lat += vals[0]
+        lng += vals[1]
+        pts.append((lng / 1e5, lat / 1e5))
+    return pts
+
+
+land = unary_union([g for _, g in clipped("ne_10m_land")] + [g for _, g in clipped("ne_10m_minor_islands")])
+lakes = unary_union([g for _, g in clipped("ne_10m_lakes_europe")])
+rivers = unary_union(
+    [g for _, g in clipped("ne_10m_rivers_europe")]
+    + [g for _, g in clipped("ne_10m_rivers_lake_centerlines")]
+).intersection(land)
+borders = unary_union([g for _, g in clipped("ne_10m_admin_0_boundary_lines_land")])
+roads = clipped("ne_10m_roads", lambda p: p["type"] in ("Major Highway", "Secondary Highway", "Road"))
+motorways = unary_union([g for p, g in roads if p["expressway"] == 1 or p["type"] == "Major Highway"])
+other_roads = unary_union([g for p, g in roads if not (p["expressway"] == 1 or p["type"] == "Major Highway")])
+
+routes = json.load(open(ROOT / "scripts/routes.json"))["routes"]
+route_out = {}
+for r in routes:
+    pts = [proj(x, y) for x, y in decode_polyline(r["polyline"])]
+    route_out[r["name"]] = {
+        "d": "M" + " L".join(f"{fmt(x)},{fmt(y)}" for x, y in pts),
+        "km": round(r["distance_m"] / 1000),
+        "min": round(r["duration_s"] / 60),
+        "end": [round(pts[-1][0], 1), round(pts[-1][1], 1)],
+        "bbox": [
+            round(min(x for x, _ in pts)),
+            round(min(y for _, y in pts)),
+            round(max(x for x, _ in pts)),
+            round(max(y for _, y in pts)),
+        ],
+    }
+
+# Graticule (every half degree) for the grid letters/numbers.
+grid_x = [round(proj(lon / 2, 0)[0], 1) for lon in range(math.ceil(LON0 * 2), math.floor(LON1 * 2) + 1)]
+grid_y = [round(proj(0, lat / 2)[1], 1) for lat in range(math.ceil(LAT0 * 2), math.floor(LAT1 * 2) + 1)]
+
+data = {
+    "W": W,
+    "H": H,
+    "land": path_d(land, 0.7),
+    "lakes": path_d(lakes, 0.4),
+    "rivers": path_d(rivers, 0.8),
+    "borders": path_d(borders, 0.7),
+    "motorways": path_d(motorways, 0.6),
+    "roads": path_d(other_roads, 0.8),
+    "gridX": grid_x,
+    "gridY": grid_y,
+    "routes": route_out,
+}
+
+lines = [
+    "// Generated by scripts/build-map.py from Natural Earth 1:10m data (public domain)",
+    "// and OSRM driving routes. Do not edit by hand.",
+    f"export const MAP = {json.dumps(data, ensure_ascii=False)} as const",
+    "",
+    f"const K = {K}",
+    f"const LON0 = {LON0}",
+    f"const Y_TOP = {Y_TOP!r}",
+    "/** Projects lon/lat to map pixels (Web Mercator). */",
+    "export function project(lon: number, lat: number): [number, number] {",
+    "  const merc = (180 / Math.PI) * Math.log(Math.tan(Math.PI / 4 + (lat * Math.PI) / 360))",
+    "  return [(lon - LON0) * K, (Y_TOP - merc) * K]",
+    "}",
+    "",
+]
+(ROOT / "src/lib/mapData.ts").write_text("\n".join(lines))
+print("W,H", W, H, "bytes", sum(len(v) for v in data.values() if isinstance(v, str)))

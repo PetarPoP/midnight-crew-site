@@ -296,3 +296,11 @@
     translate: 0 0;
   }
 }
+@keyframes panel-in {
+  from {
+    translate: 100% 0;
+  }
+  to {
+    translate: 0 0;
+  }
+}

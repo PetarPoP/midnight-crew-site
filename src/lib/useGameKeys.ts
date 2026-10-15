@@ -30,9 +30,12 @@ export function useGameKeys() {
       const mid = window.innerHeight / 2
       let best: HTMLElement | null = null
       let bestDist = Infinity
-      document.querySelectorAll<HTMLElement>(`[data-pad="${key}"]`).forEach((el) => {
+      // An open dialog owns the prompts.
+      const modal = document.querySelector('[data-modal]')
+      const scope = modal ?? document
+      scope.querySelectorAll<HTMLElement>(`[data-pad="${key}"]`).forEach((el) => {
         const r = el.getBoundingClientRect()
-        if (r.width === 0 || r.bottom < 0 || r.top > window.innerHeight) return
+        if (r.width === 0 || (!modal && (r.bottom < 0 || r.top > window.innerHeight))) return
         const d = Math.abs(r.top + r.height / 2 - mid)
         if (d < bestDist) {
           bestDist = d

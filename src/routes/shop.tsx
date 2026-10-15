@@ -1,13 +1,17 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { useState, type CSSProperties } from 'react'
+import { useCallback, useState, type CSSProperties } from 'react'
 import { Header } from '~/components/Header'
 import { Footer } from '~/components/Footer'
 import { ProductPhoto } from '~/components/ProductPhoto'
 import { PadPrompt } from '~/components/ui'
-import { INSTAGRAM_URL, PRODUCTS, SHOP_FILTERS, type Product, type ShopFilter } from '~/lib/data'
+import { INSTAGRAM_URL, PRODUCTS, SHOP_FILTERS, productById, type Product, type ShopFilter } from '~/lib/data'
+import { QuickView } from '~/components/shop/QuickView'
 import { useCart } from '~/lib/cart'
 
 export const Route = createFileRoute('/shop')({
+  // ?p=<product id> opens the quick view, so back closes it and links can open it.
+  validateSearch: (search: Record<string, unknown>): { p?: string } =>
+    typeof search.p === 'string' && productById(search.p) ? { p: search.p } : {},
   head: () => ({
     meta: [
       { title: 'Shop · Midnight Crew' },
@@ -22,7 +26,12 @@ const ORDER_DM = 'https://ig.me/m/midnight_crew_livno'
 function ShopPage() {
   const [filter, setFilter] = useState<ShopFilter>('sve')
   const navigate = useNavigate()
+  const { p: openId } = Route.useSearch()
   const products = PRODUCTS.filter((p) => filter === 'sve' || p.category === filter)
+  const open = openId ? productById(openId) : undefined
+
+  const openProduct = (id: string) => navigate({ to: '/shop', search: { p: id }, resetScroll: false })
+  const close = useCallback(() => navigate({ to: '/shop', search: {}, resetScroll: false, replace: true }), [navigate])
 
   return (
     <main className="min-h-screen overflow-x-clip bg-ink">
@@ -49,32 +58,38 @@ function ShopPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-6 px-5 pb-16 md:px-12 xl:grid-cols-[minmax(0,1fr)_380px]">
-        <div>
-          <div className="mb-5 flex gap-2 text-lg font-extrabold uppercase italic md:text-xl" role="group" aria-label="Kategorije">
-            {SHOP_FILTERS.map((f) => (
-              <button
-                key={f.key}
-                type="button"
-                onClick={() => setFilter(f.key)}
-                aria-pressed={f.key === filter}
-                className={`fh-wipe cursor-pointer px-4 py-2 uppercase italic ${f.key === filter ? '' : 'text-[#8e909b]'}`}
-              >
-                <span aria-hidden="true" className="absolute inset-0 -z-20 -skew-x-[14deg] bg-panel" />
-                {f.label}
-              </button>
-            ))}
+        <ul className="order-2 grid h-fit grid-cols-1 gap-4 md:grid-cols-2 xl:order-none">
+          {products.map((p, i) => (
+            <li key={p.id} data-reveal="" style={{ '--i': i } as CSSProperties}>
+              <ProductCard product={p} onOpen={() => openProduct(p.id)} />
+            </li>
+          ))}
+        </ul>
+
+        {/* Cart and filters stay in view while scrolling */}
+        <div className="order-1 flex h-fit flex-col gap-4 xl:sticky xl:top-6 xl:order-none">
+          <CartPanel />
+          <div data-reveal="right" style={{ '--i': 1 } as CSSProperties} className="bg-panel px-6 py-5">
+            <div className="mb-3 text-sm font-bold tracking-[.12em] text-muted">KATEGORIJE</div>
+            <div className="flex flex-wrap gap-2 text-lg font-extrabold uppercase italic md:text-xl" role="group" aria-label="Kategorije">
+              {SHOP_FILTERS.map((f) => (
+                <button
+                  key={f.key}
+                  type="button"
+                  onClick={() => setFilter(f.key)}
+                  aria-pressed={f.key === filter}
+                  className={`fh-wipe cursor-pointer px-4 py-2 uppercase italic ${f.key === filter ? '' : 'text-[#8e909b]'}`}
+                >
+                  <span aria-hidden="true" className="absolute inset-0 -z-20 -skew-x-[14deg] bg-panel-2" />
+                  {f.label}
+                  <span className="ml-1.5 text-base opacity-60">
+                    {f.key === 'sve' ? PRODUCTS.length : PRODUCTS.filter((p) => p.category === f.key).length}
+                  </span>
+                </button>
+              ))}
+            </div>
           </div>
-
-          <ul className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            {products.map((p, i) => (
-              <li key={p.id} data-reveal="" style={{ '--i': i } as CSSProperties}>
-                <ProductCard product={p} />
-              </li>
-            ))}
-          </ul>
         </div>
-
-        <CartPanel />
       </div>
 
       <div className="hidden justify-end gap-7 px-12 pb-10 text-xl font-bold uppercase md:flex">
@@ -83,64 +98,33 @@ function ShopPage() {
       </div>
 
       <Footer />
+
+      {open && <QuickView key={open.id} product={open} onClose={close} />}
     </main>
   )
 }
 
-function ProductCard({ product: p }: { product: Product }) {
-  const { add } = useCart()
-  const [size, setSize] = useState<string | null>(p.sizes.length ? (p.sizes.includes('M') ? 'M' : p.sizes[0]) : null)
-  const [justAdded, setJustAdded] = useState(false)
-
-  const onAdd = () => {
-    add(p.id, size)
-    setJustAdded(true)
-    setTimeout(() => setJustAdded(false), 1200)
-  }
-
+function ProductCard({ product: p, onOpen }: { product: Product; onOpen: () => void }) {
   return (
-    <article id={p.id} className="fh-hover group flex h-full scroll-mt-6 flex-col bg-panel" tabIndex={-1}>
+    <button
+      type="button"
+      onClick={onOpen}
+      aria-label={`${p.name}, ${p.price} KM, otvori pojedinosti`}
+      className="fh-hover group flex h-full w-full cursor-pointer flex-col bg-panel text-left"
+    >
       <ProductPhoto product={p} />
-      <div className="flex flex-1 flex-col gap-4 px-5 py-5">
+      <div className="flex flex-1 flex-col gap-3 px-5 py-5">
         <div className="flex items-start justify-between gap-4">
           <h2 className="text-[40px] leading-[.9] font-extrabold uppercase italic">{p.name}</h2>
           <span className="shrink-0 -skew-x-[14deg] bg-lime px-3.5 py-2 text-[22px] font-extrabold text-ink">{p.price} KM</span>
         </div>
         <p className="flex-1 text-lg leading-snug text-soft">{p.blurb}</p>
-
-        {p.sizes.length > 0 && (
-          <div>
-            <div className="mb-2 text-sm font-bold tracking-[.12em] text-muted">VELIČINA</div>
-            <div className="flex gap-2" role="radiogroup" aria-label={`Veličina, ${p.name}`}>
-              {p.sizes.map((s) => (
-                <button
-                  key={s}
-                  type="button"
-                  role="radio"
-                  aria-checked={s === size}
-                  aria-pressed={s === size}
-                  onClick={() => setSize(s)}
-                  className={`fh-wipe min-w-12 cursor-pointer px-3 py-1.5 text-xl font-extrabold italic ${s === size ? '' : 'text-soft'}`}
-                >
-                  <span aria-hidden="true" className="absolute inset-0 -z-20 -skew-x-[14deg] bg-panel-2" />
-                  {s}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <button
-          type="button"
-          onClick={onAdd}
-          className={`flex cursor-pointer items-center justify-center gap-2.5 py-3 text-2xl font-extrabold uppercase italic transition-[background-color,scale] active:scale-95 ${
-            justAdded ? 'bg-go text-ink' : 'bg-pink text-white hover:brightness-110'
-          }`}
-        >
-          {justAdded ? 'Dodano ✓' : `Dodaj${size ? ` · ${size}` : ''}`}
-        </button>
+        <div className="flex items-center justify-between text-base font-bold tracking-[.08em] text-muted uppercase">
+          <span>{p.sizes.length ? p.sizes.join(' · ') : 'Jedna veličina'}</span>
+          <span className="text-lime transition-transform group-hover:translate-x-1">Pojedinosti →</span>
+        </div>
       </div>
-    </article>
+    </button>
   )
 }
 
@@ -170,7 +154,7 @@ function CartPanel() {
       id="kosarica"
       aria-label="Košarica"
       data-reveal="right"
-      className="h-fit scroll-mt-6 border-l-[6px] border-lime bg-panel px-6 py-5 xl:sticky xl:top-6"
+      className="scroll-mt-6 border-l-[6px] border-lime bg-panel px-6 py-5"
     >
       <div className="flex items-baseline justify-between">
         <h2 className="text-[40px] leading-none font-extrabold uppercase italic">Košarica</h2>
@@ -179,7 +163,7 @@ function CartPanel() {
 
       {lines.length === 0 ? (
         <p className="mt-6 mb-2 text-lg text-soft">
-          Prazno. Odaberi nešto lijevo pa stisni <span className="font-bold text-white">Dodaj</span>.
+          Prazno. Otvori artikl i stisni <span className="font-bold text-white">Dodaj u košaricu</span>.
         </p>
       ) : (
         <ul className="mt-5 flex flex-col gap-2">
