@@ -61,20 +61,13 @@ export function GarageSection() {
         <p className="px-5 pb-16 text-xl text-muted md:px-(--gutter)">Garaža je prazna. Dodaj prvi auto u CMS-u.</p>
       ) : (
         <div className="px-5 pb-20 md:px-(--gutter)">
+          {/* Tilted, skewed stage for drama; the content inside is turned back so the car stays level */}
+          <div data-reveal="" className="md:px-10 md:py-6">
           <div
-            data-reveal=""
-            className="map-corners relative overflow-hidden bg-[#161220] shadow-[0_0_0_4px_#fff]"
-            style={{ backgroundImage: 'radial-gradient(90% 70% at 62% 62%, rgba(255,24,160,.22), transparent 70%), linear-gradient(180deg, #1c1630, #100d19)' }}
+            className="garage-tilt relative overflow-hidden bg-[#161220] shadow-[0_0_0_4px_#fff,14px_14px_0_var(--color-pink)]"
           >
-            {/* faint oversized year, like a game backdrop */}
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute -top-6 right-4 font-extrabold text-white/[.045] italic select-none text-[min(34vw,420px)] leading-none"
-            >
-              {car.year}
-            </div>
-
-            <div className="relative grid min-h-[560px] grid-rows-[auto_1fr_auto] md:min-h-[620px]">
+            <div className="garage-untilt relative grid min-h-[560px] grid-rows-[auto_1fr_auto] md:min-h-[620px]">
+              <Showroom year={car.year} />
               {/* Name plate + counter */}
               <div className="flex items-start justify-between gap-4 px-5 pt-5 md:px-8 md:pt-7">
                 <div key={car.id} className="animate-swap-in">
@@ -103,14 +96,18 @@ export function GarageSection() {
 
               {/* Stage */}
               <div className="relative flex items-center justify-center px-4 py-6 md:px-16">
-                <div aria-hidden="true" className="absolute inset-x-[8%] bottom-[14%] h-[18%] rounded-[50%] bg-[radial-gradient(closest-side,rgba(255,255,255,.28),rgba(255,24,160,.18)_55%,transparent)] blur-[2px]" />
-                <div aria-hidden="true" className="absolute inset-x-0 bottom-[19%] h-px bg-gradient-to-r from-transparent via-white/25 to-transparent" />
                 <div
                   key={car.id}
                   className="relative z-[1] w-full max-w-[860px] animate-[car-in_.5s_cubic-bezier(.2,.9,.2,1)_both]"
                   style={{ '--dx': `${dir * 80}px` } as CSSProperties}
                 >
+                  {/* Turntable the car stands on */}
+                  <div aria-hidden="true" className="garage-turntable absolute top-full left-[-9%] -z-[1] w-[118%] -translate-y-[58%]" />
                   <CarImage car={car} />
+                  {/* Reflection on the polished floor */}
+                  <div aria-hidden="true" className="garage-reflection pointer-events-none absolute inset-x-0 top-full">
+                    <CarImage car={car} />
+                  </div>
                 </div>
               </div>
 
@@ -137,6 +134,7 @@ export function GarageSection() {
                 </div>
               </div>
             </div>
+          </div>
           </div>
 
           {/* Car picker */}
@@ -198,6 +196,19 @@ function Stat({ label, value, ratio }: { label: string; value: string; ratio: nu
 }
 
 /** The car cut-out (transparent PNG), or a silhouette until one is uploaded. */
+/** Forza-style showroom behind the car: back wall with light panels, ceiling light bars, polished floor. */
+function Showroom({ year }: { year: number }) {
+  return (
+    <div aria-hidden="true" className="garage-showroom pointer-events-none absolute -z-[1] -inset-y-[6%] inset-x-0 overflow-hidden">
+      <div className="garage-ceiling" />
+      <div className="garage-wall">
+        <div className="garage-year">{year}</div>
+      </div>
+      <div className="garage-floor" />
+    </div>
+  )
+}
+
 function CarImage({ car, small = false }: { car: Car; small?: boolean }) {
   if (car.image) {
     return (
