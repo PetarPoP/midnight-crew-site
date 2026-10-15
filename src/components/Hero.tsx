@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router'
-import type { CSSProperties, ReactNode } from 'react'
+import { useEffect, useRef, type CSSProperties, type ReactNode } from 'react'
 import { EVENTS, INSTAGRAM_URL, PRODUCTS, TOTAL_KM, formatKm } from '~/lib/data'
 import { useCountdown } from '~/lib/useCountdown'
 import { Header } from './Header'
@@ -42,14 +42,52 @@ function Digits({ value }: { value: string }) {
   )
 }
 
+/**
+ * Scroll progress through the hero (0 at the top, 1 once it has scrolled
+ * away), written to --hp on the section so CSS can drive the parallax.
+ */
+function useHeroScroll() {
+  const ref = useRef<HTMLElement>(null)
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    let raf = 0
+    let last = -1
+    const update = () => {
+      raf = 0
+      const p = Math.min(1, Math.max(0, window.scrollY / Math.max(1, el.offsetHeight)))
+      if (p === last) return
+      last = p
+      el.style.setProperty('--hp', p.toFixed(4))
+    }
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(update)
+    }
+    update()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onScroll)
+    return () => {
+      cancelAnimationFrame(raf)
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onScroll)
+    }
+  }, [])
+  return ref
+}
+
 export function Hero() {
   const cd = useCountdown()
   const featured = EVENTS[1]
+  const ref = useHeroScroll()
 
   return (
-    <section id="top" className="relative pb-10 xl:h-[800px] xl:pb-0">
-      {/* Background photo */}
-      <div className="absolute inset-0 overflow-hidden">
+    <section
+      ref={ref}
+      id="top"
+      className="relative min-h-svh overflow-hidden pb-10 xl:h-[max(100svh,800px)] xl:min-h-0 xl:pb-0 [--top:max(150px,calc(50%-255px))]"
+    >
+      {/* Background photo: drifts down at a fraction of the scroll speed */}
+      <div className="hero-bg absolute inset-0 overflow-hidden">
         <img
           src="/images/hero-bg.jpg"
           alt=""
@@ -57,13 +95,13 @@ export function Hero() {
           fetchPriority="high"
         />
         <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(20,16,28,.75),rgba(20,16,28,.1)_55%,rgba(20,16,28,.5))]" />
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-ink to-transparent xl:hidden" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-ink to-transparent" />
       </div>
 
       <Header overlay />
 
       {/* Tile grid */}
-      <div className="relative z-[1] grid grid-cols-1 gap-3 px-7 pt-2 md:grid-cols-2 md:px-12 xl:absolute xl:top-[150px] xl:left-12 xl:-skew-x-6 xl:grid-cols-[380px_220px_220px] xl:grid-rows-[250px_170px_170px] xl:p-0">
+      <div className="hero-fade relative z-[1] grid grid-cols-1 gap-3 px-7 pt-2 md:grid-cols-2 md:px-12 xl:absolute xl:top-(--top) xl:left-12 xl:-skew-x-6 xl:grid-cols-[380px_220px_220px] xl:grid-rows-[250px_170px_170px] xl:p-0">
         {/* Next event + countdown */}
         <Tile i={0} className="h-[340px] md:col-span-2 xl:col-span-1 xl:row-span-2 xl:h-auto">
           <Link to="/" hash="dogadaji" className={`${TILE} bg-pink shadow-[0_0_0_4px_#fff]`}>
@@ -83,9 +121,7 @@ export function Hero() {
                 >
                   <Digits value={`${cd.d}:${cd.h}:${cd.m}:${cd.s}`} />
                 </div>
-                <div className="mt-2 text-lg font-bold tracking-[.06em] uppercase">
-                  Sub {cd.label || EVENTS[0].date} · 22:00 · Livno
-                </div>
+                <div className="mt-2 text-lg font-bold tracking-[.06em] uppercase">Sub {cd.label || EVENTS[0].date} · 22:00 · Livno</div>
               </div>
             </div>
           </Link>
@@ -93,13 +129,7 @@ export function Hero() {
 
         {/* Gallery tile */}
         <Tile i={1} className="h-[200px] xl:h-auto">
-          <a
-            id="galerija"
-            href={INSTAGRAM_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`${TILE} group scroll-mt-6 bg-[#222]`}
-          >
+          <a id="galerija" href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" className={`${TILE} group scroll-mt-6 bg-[#222]`}>
             <div className="absolute inset-y-0 -inset-x-[30px] skew-x-6">
               <img
                 src="/images/galerija.jpg"
@@ -165,34 +195,38 @@ export function Hero() {
       </div>
 
       {/* Unlocked event */}
-      <div
-        data-reveal="right"
-        style={{ '--i': 3 } as CSSProperties}
-        className="relative z-[1] mx-5 mt-6 md:mx-12 xl:absolute xl:top-[150px] xl:right-12 xl:m-0 xl:w-[260px]"
-      >
-        <Link to="/" hash="dogadaji" className="fh-hover block border-l-[6px] border-lime bg-ink/85 px-[22px] py-[18px]">
-          <div className="text-[15px] font-bold tracking-[.12em] text-lime">
-            NOVO · OTKLJUČANO
-            <span className="ml-2 inline-block size-2 animate-pulse rounded-full bg-lime align-middle" />
-          </div>
-          <div className="mt-1.5 text-[30px] leading-none font-extrabold uppercase italic">{featured.title}</div>
-          <div className="mt-1.5 text-lg text-soft">
-            {featured.date} · {featured.time} · {featured.place}
-          </div>
-        </Link>
+      <div className="hero-fade relative z-[1] mx-5 mt-6 md:mx-12 xl:absolute xl:top-(--top) xl:right-12 xl:m-0 xl:w-[260px]">
+        <div data-reveal="right" style={{ '--i': 3 } as CSSProperties}>
+          <Link to="/" hash="dogadaji" className="fh-hover block border-l-[6px] border-lime bg-ink/85 px-[22px] py-[18px]">
+            <div className="text-[15px] font-bold tracking-[.12em] text-lime">
+              NOVO · OTKLJUČANO
+              <span className="ml-2 inline-block size-2 animate-pulse rounded-full bg-lime align-middle" />
+            </div>
+            <div className="mt-1.5 text-[30px] leading-none font-extrabold uppercase italic">{featured.title}</div>
+            <div className="mt-1.5 text-lg text-soft">
+              {featured.date} · {featured.time} · {featured.place}
+            </div>
+          </Link>
+        </div>
       </div>
 
       {/* Button prompts: click or press A / B / X */}
-      <div className="relative z-[1] hidden justify-end gap-3 px-12 pt-6 pb-2 text-xl font-bold uppercase md:flex xl:absolute xl:inset-x-12 xl:bottom-[26px] xl:p-0">
-        <PadPrompt pad="a" to="/" hash="dogadaji">Odaberi</PadPrompt>
-        <PadPrompt pad="b" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>Natrag</PadPrompt>
-        <PadPrompt pad="x" to="/" hash="karta">Karta</PadPrompt>
+      <div className="hero-fade relative z-[1] hidden justify-end gap-3 px-12 pt-6 pb-2 text-xl font-bold uppercase md:flex xl:absolute xl:inset-x-12 xl:bottom-[26px] xl:p-0">
+        <PadPrompt pad="a" to="/" hash="dogadaji">
+          Odaberi
+        </PadPrompt>
+        <PadPrompt pad="b" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+          Natrag
+        </PadPrompt>
+        <PadPrompt pad="x" to="/" hash="karta">
+          Karta
+        </PadPrompt>
       </div>
 
       <Credit
         name="Samuele Errico Piccarini"
         href="https://unsplash.com/@samuele_piccarini"
-        className="absolute bottom-2 left-3 z-[1] hidden xl:block"
+        className="hero-fade absolute bottom-2 left-3 z-[1] hidden xl:block"
       />
     </section>
   )
