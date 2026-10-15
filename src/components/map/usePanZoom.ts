@@ -61,11 +61,15 @@ export function usePanZoom(W: number, H: number, initial: Box) {
     [W, H],
   )
 
+  const overlayRef = useRef<HTMLDivElement>(null)
+
+  // The basemap layer is only ever moved by the compositor. Pins and the route
+  // live in a screen-space overlay that is re-positioned here, so their
+  // animations never force the (large) map layer to repaint.
   const write = (v: View) => {
     const el = worldRef.current
-    if (!el) return
-    el.style.transform = `translate3d(${v.x}px, ${v.y}px, 0) scale(${v.s})`
-    el.style.setProperty('--s', String(v.s))
+    if (el) el.style.transform = `translate3d(${v.x}px, ${v.y}px, 0) scale(${v.s})`
+    placeOverlay(overlayRef.current, v)
   }
 
   const tick = useCallback(
@@ -355,11 +359,31 @@ export function usePanZoom(W: number, H: number, initial: Box) {
       ({
         transform: `translate3d(${first.x}px, ${first.y}px, 0) scale(${first.s})`,
         transformOrigin: '0 0',
-        '--s': first.s,
       }) as CSSProperties,
   )
 
-  return { ref, worldRef, worldStyle, view, moving, flyTo, zoomBy, pan }
+  /** Initial style for an overlay item at world point (wx, wy). */
+  const at = useCallback((wx: number, wy: number) => ({ translate: `${wx * first.s + first.x}px ${wy * first.s + first.y}px` }), [first])
+  /** Re-place the overlay after React re-renders it (call from a layout effect). */
+  const sync = useCallback(() => placeOverlay(overlayRef.current, cur.current), [])
+
+  return { ref, worldRef, overlayRef, worldStyle, view, moving, flyTo, zoomBy, pan, at, sync, first }
+}
+
+/**
+ * Overlay items carry their world position in data attributes:
+ * data-wx/data-wy (HTML pins), data-world-g (an SVG group drawn in world
+ * coordinates), and data-world-r / data-world-sw (an SVG radius or stroke
+ * width that stays the same on screen).
+ */
+function placeOverlay(root: HTMLElement | null, v: View) {
+  if (!root) return
+  for (const el of root.querySelectorAll<HTMLElement>('[data-wx]')) {
+    el.style.translate = `${+el.dataset.wx! * v.s + v.x}px ${+el.dataset.wy! * v.s + v.y}px`
+  }
+  for (const g of root.querySelectorAll('[data-world-g]')) g.setAttribute('transform', `translate(${v.x} ${v.y}) scale(${v.s})`)
+  for (const c of root.querySelectorAll('[data-world-r]')) c.setAttribute('r', String(+c.getAttribute('data-world-r')! / v.s))
+  for (const c of root.querySelectorAll('[data-world-sw]')) c.setAttribute('stroke-width', String(+c.getAttribute('data-world-sw')! / v.s))
 }
 
 /** View that fits a world-space box into a w×h viewport with padding. */

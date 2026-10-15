@@ -6,3 +6,4 @@ dist
 .vinxi
 .DS_Store
 *.local
+.wrangler

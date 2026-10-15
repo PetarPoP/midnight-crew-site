@@ -294,24 +294,14 @@
   animation: toast-in 0.35s cubic-bezier(0.2, 0.9, 0.2, 1) both;
 }
 
+/* Reduced motion: stop the looping and large-movement effects only. The
+   short menu animations stay, since they are the point of the design. */
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    transition-delay: 0s !important;
-  }
-  .reveal-ready [data-reveal] {
-    opacity: 1;
-    translate: 0 0;
-  }
-  .route-draw {
-    stroke-dashoffset: 0;
-  }
-  .route-after {
-    opacity: 1;
+  .animate-route-dash,
+  .animate-pin-pulse,
+  .animate-\[hero-zoom_14s_ease-out_both\],
+  .animate-\[marquee_28s_linear_infinite\] {
+    animation: none !important;
   }
 }
 

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
 import { FILTERS, KIND_COLOR, KIND_GLYPH, LIVNO, MAX_KM, PLACES, TOTAL_KM, eventsAt, formatKm, type FilterKey } from '~/lib/data'
 import { MAP, project } from '~/lib/mapData'
 import { useCountUp } from '~/lib/useCountUp'
@@ -60,10 +60,13 @@ export function MapSection() {
   const pxPerKm = map.view.s / KM_PER_PX
   const scaleKm = [5, 10, 20, 25, 50, 100, 200].find((k) => k * pxPerKm >= 70) ?? 200
 
+  // React may have just re-created overlay nodes (e.g. a new route); place them before paint.
+  useLayoutEffect(map.sync)
+
   const worldStyle = { ...map.worldStyle, width: MAP.W, height: MAP.H } as CSSProperties
 
   // Markers keep the same on-screen size at every zoom level.
-  const marker = (scale = 1) => ({ transform: `translate(-50%,-50%) scale(calc(var(--pin) * ${scale} / var(--s)))` })
+  const marker = (scale = 1) => ({ transform: `translate(-50%,-50%) scale(calc(var(--pin) * ${scale}))` })
 
   return (
     <section aria-labelledby="karta-title">
@@ -117,14 +120,25 @@ export function MapSection() {
         >
           <div ref={map.worldRef} className="absolute top-0 left-0" style={worldStyle}>
             <BaseMap />
+          </div>
 
+          {/* Screen-space overlay: route and pins follow the map via usePanZoom. */}
+          <div ref={map.overlayRef} className="pointer-events-none absolute inset-0">
             {/* Active route from Livno */}
-            <svg width={MAP.W} height={MAP.H} viewBox={`0 0 ${MAP.W} ${MAP.H}`} className="pointer-events-none absolute inset-0" aria-hidden="true">
+            <svg className="absolute inset-0 size-full overflow-visible" aria-hidden="true">
               {/* key restarts the draw animation every time the destination changes */}
-              <g key={sel} fill="none" strokeLinecap="round" strokeLinejoin="round" style={{ '--dur': drawDur } as CSSProperties}>
-                <path d={selected.route} pathLength={1} className="route-draw" stroke="#14101c" opacity=".55" style={{ strokeWidth: 'calc(12px / var(--s))' }} />
-                <path d={selected.route} pathLength={1} className="route-draw" stroke="#fff" style={{ strokeWidth: 'calc(10px / var(--s))' }} />
-                <path d={selected.route} pathLength={1} className="route-draw" stroke="var(--color-pink)" style={{ strokeWidth: 'calc(7px / var(--s))' }} />
+              <g
+                key={sel}
+                data-world-g=""
+                transform={`translate(${map.first.x} ${map.first.y}) scale(${map.first.s})`}
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                style={{ '--dur': drawDur } as CSSProperties}
+              >
+                <path d={selected.route} pathLength={1} className="route-draw" stroke="#14101c" opacity=".55" data-world-sw="12" strokeWidth={12 / map.first.s} />
+                <path d={selected.route} pathLength={1} className="route-draw" stroke="#fff" data-world-sw="10" strokeWidth={10 / map.first.s} />
+                <path d={selected.route} pathLength={1} className="route-draw" stroke="var(--color-pink)" data-world-sw="7" strokeWidth={7 / map.first.s} />
                 <g className="route-after">
                   <path
                     d={selected.route}
@@ -132,18 +146,19 @@ export function MapSection() {
                     className="animate-route-dash"
                     pathLength={400}
                     strokeDasharray="1 3"
-                    style={{ strokeWidth: 'calc(2.4px / var(--s))' }}
+                    data-world-sw="2.4"
+                    strokeWidth={2.4 / map.first.s}
                   />
                 </g>
                 {/* the "car" leading the route */}
-                <circle fill="#fff" stroke="var(--color-pink)" style={{ r: 'calc(6px / var(--s))', strokeWidth: 'calc(3px / var(--s))' } as CSSProperties}>
+                <circle data-world-r="6" r={6 / map.first.s} fill="#fff" stroke="var(--color-pink)" data-world-sw="3" strokeWidth={3 / map.first.s}>
                   <animateMotion dur={drawDur} path={selected.route} fill="freeze" calcMode="spline" keyTimes="0;1" keySplines=".6 0 .3 1" />
                 </circle>
               </g>
             </svg>
 
             {/* Home base: Livno */}
-            <div className="pointer-events-none absolute z-[6]" style={{ left: LIVNO_X, top: LIVNO_Y, ...marker() }}>
+            <div className="pointer-events-none absolute top-0 left-0 z-[6]" data-wx={LIVNO_X} data-wy={LIVNO_Y} style={{ ...map.at(LIVNO_X, LIVNO_Y), ...marker() }}>
               <div className="animate-pin-pulse absolute top-1/2 left-1/2 -mt-[60px] -ml-[60px] size-[120px] rounded-full border-[3px] border-lime" />
               <div className="hex relative flex h-[68px] w-[60px] items-center justify-center bg-white">
                 <div className="hex flex h-[60px] w-[52px] items-center justify-center bg-lime text-[26px] font-extrabold text-ink italic">MC</div>
@@ -164,8 +179,10 @@ export function MapSection() {
                   onClick={() => setSel(p.name)}
                   aria-pressed={on}
                   aria-label={`${p.name}, ${p.km} km od Livna`}
-                  className="group absolute cursor-pointer transition-opacity duration-200 hover:z-30 hover:brightness-110 focus-visible:outline-none"
-                  style={{ left: p.x, top: p.y, opacity: dim ? 0.38 : 1, zIndex: on ? 20 : 5, ...marker(on ? 1.22 : 1) }}
+                  data-wx={p.x}
+                  data-wy={p.y}
+                  className="group pointer-events-auto absolute top-0 left-0 cursor-pointer transition-opacity duration-200 hover:z-30 hover:brightness-110 focus-visible:outline-none"
+                  style={{ ...map.at(p.x, p.y), opacity: dim ? 0.38 : 1, zIndex: on ? 20 : 5, ...marker(on ? 1.22 : 1) }}
                 >
                   <div className="hex flex h-[52px] w-[46px] items-center justify-center bg-white transition-transform duration-200 ease-[cubic-bezier(.3,1.6,.5,1)] group-hover:scale-115 group-focus-visible:scale-115">
                     <div

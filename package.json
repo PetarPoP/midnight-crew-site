@@ -6,7 +6,9 @@
     "dev": "vite dev --port 3000",
     "build": "vite build",
     "preview": "vite preview --port 3000",
-    "typecheck": "tsc --noEmit"
+    "deploy": "npm run build && wrangler deploy",
+    "typecheck": "tsc --noEmit",
+    "cf-typegen": "wrangler types"
   },
   "dependencies": {
     "@fontsource/barlow-condensed": "^5.3.0",
@@ -17,6 +19,7 @@
     "react-dom": "^19.3.1"
   },
   "devDependencies": {
+    "@cloudflare/vite-plugin": "^1.64.0",
     "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^22.0.0",
     "@types/react": "^19.3.0",
@@ -24,6 +27,7 @@
     "@vitejs/plugin-react": "^6.1.2",
     "tailwindcss": "^4.3.3",
     "typescript": "^5.9.3",
-    "vite": "^8.3.4"
+    "vite": "^8.3.4",
+    "wrangler": "^4.151.0"
   }
 }
