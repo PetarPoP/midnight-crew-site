@@ -9,7 +9,7 @@ type Json<T> = Record<string, { default: T }>
 const byFile = <T,>(files: Json<T>) =>
   Object.entries(files).map(([path, mod]) => ({ id: path.split('/').pop()!.replace(/\.json$/, ''), ...mod.default }))
 
-type Settings = { site_url: string; instagram_url: string; instagram_handle: string; rules: string; crew_level: number }
+type Settings = { site_url: string; instagram_url: string; instagram_handle: string; rules: string; shipping_note: string }
 export const SETTINGS = (import.meta.glob<{ default: Settings }>('../content/settings.json', { eager: true })['../content/settings.json'])
   .default
 export const SITE_URL = SETTINGS.site_url.replace(/\/$/, '')
@@ -83,13 +83,13 @@ export const KIND_GLYPH: Record<Kind, string> = { nas: '★', idemo: '⚑', bili
 // are real driving routes from Livno, cached by scripts/fetch-routes.mjs.
 export const LIVNO = { lon: 17.008, lat: 43.827 }
 
-type PlaceFile = { name: string; lon: number; lat: number; kind: Kind }
+type PlaceFile = { name: string; lon: number; lat: number; kind: Kind; photo?: string }
 const PLACE_DATA = byFile(import.meta.glob<{ default: PlaceFile }>('../content/places/*.json', { eager: true }))
 
 export const PLACES = PLACE_DATA.map((p) => {
   const r = routeTo(p.name, p.lon, p.lat)
   const [x, y] = project(p.lon, p.lat)
-  return { name: p.name, lon: p.lon, lat: p.lat, k: p.kind, x, y, km: r.km, minutes: r.min, route: r.d, bbox: r.bbox }
+  return { name: p.name, lon: p.lon, lat: p.lat, k: p.kind, photo: p.photo ?? '', x, y, km: r.km, minutes: r.min, route: r.d, bbox: r.bbox }
 })
 export type PlaceWithKm = (typeof PLACES)[number]
 
@@ -124,6 +124,58 @@ export const PRODUCTS: Product[] = byFile(import.meta.glob<{ default: ProductFil
     image: p.image ?? '',
     placeholder: `Fotka: ${p.name.toLowerCase()}`,
   }))
+
+export type Car = {
+  id: string
+  car: string
+  owner: string
+  /** Instagram handle without the @ (may be empty). */
+  instagram: string
+  year: number
+  hp: number
+  torque: number
+  drivetrain: 'rwd' | 'fwd' | 'awd'
+  note: string
+  /** Transparent PNG of the car, or empty for the silhouette placeholder. */
+  image: string
+}
+
+type CarFile = Omit<Car, 'id'> & { order?: number }
+
+export const GARAGE: Car[] = byFile(import.meta.glob<{ default: CarFile }>('../content/garage/*.json', { eager: true }))
+  .sort((a, b) => (a.order ?? 99) - (b.order ?? 99) || a.car.localeCompare(b.car))
+  .map(({ order: _order, ...c }) => ({
+    ...c,
+    instagram: (c.instagram ?? '').replace(/^@/, '').trim(),
+    note: c.note ?? '',
+    image: c.image ?? '',
+    drivetrain: c.drivetrain ?? 'rwd',
+  }))
+
+/** Crew level: grows with distance, meets, crew size and places visited. */
+export const CREW_XP_PARTS = [
+  { key: 'km', label: 'Prijeđeni km', unit: 'km', value: () => TOTAL_KM, perUnit: 0.5 },
+  { key: 'meets', label: 'Meetovi', unit: '', value: () => EVENTS.length, perUnit: 40 },
+  { key: 'crew', label: 'Članovi ekipe', unit: '', value: () => GARAGE.length, perUnit: 120 },
+  { key: 'places', label: 'Mjesta na karti', unit: '', value: () => PLACES.length, perUnit: 60 },
+] as const
+
+export function crewLevel() {
+  const parts = CREW_XP_PARTS.map((p) => ({ key: p.key, label: p.label, value: p.value(), xp: Math.round(p.value() * p.perUnit) }))
+  const xp = parts.reduce((a, p) => a + p.xp, 0)
+  const level = Math.max(1, Math.floor(Math.sqrt(xp / 4)))
+  const from = 4 * level * level
+  const to = 4 * (level + 1) * (level + 1)
+  return { xp, level, progress: (xp - from) / (to - from), next: to - xp, parts }
+}
+
+/** Badge for a destination, by how far from Livno it is. */
+export function placeBadge(km: number) {
+  if (km < 30) return { name: 'Domaći teren', tier: 1 }
+  if (km < 100) return { name: 'Regionalac', tier: 2 }
+  if (km < 200) return { name: 'Putnik', tier: 3 }
+  return { name: 'Ekspedicija', tier: 4 }
+}
 
 export const SHOP_FILTERS = [
   { key: 'sve', label: 'Sve' },

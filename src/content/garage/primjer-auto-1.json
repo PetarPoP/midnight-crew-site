@@ -1,0 +1,12 @@
+{
+  "car": "Primjer: auto 1",
+  "owner": "Ime člana",
+  "instagram": "",
+  "year": 2008,
+  "hp": 420,
+  "torque": 480,
+  "drivetrain": "rwd",
+  "note": "Zamijeni ovaj primjer pravim autom u CMS-u.",
+  "image": "",
+  "order": 1
+}

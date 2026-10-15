@@ -100,6 +100,39 @@ collections:
           - { label: 'Bili smo', value: bili }
           - { label: 'Naš meet', value: nas }
           - { label: 'Idemo na', value: idemo }
+      - { name: photo, label: Glavna slika, widget: image, required: false, hint: Prikazuje se na kartici kad se odabere ovo mjesto. }
+
+  - name: garage
+    label: Garaža
+    label_singular: Auto
+    description: >-
+      Auti ekipe. Za najbolji izgled učitaj PNG auta bez pozadine (prozirna pozadina,
+      auto sa strane), npr. preko remove.bg. Svaki auto u garaži povećava Crew LVL.
+    folder: src/content/garage
+    format: json
+    create: true
+    identifier_field: car
+    slug: '{{car}}'
+    summary: '{{car}} · {{owner}}'
+    sortable_fields: [order, car, owner]
+    fields:
+      - { name: car, label: Auto (marka i model), widget: string }
+      - { name: owner, label: Vlasnik, widget: string }
+      - { name: instagram, label: Instagram vlasnika (bez @), widget: string, required: false }
+      - { name: year, label: Godina, widget: number, value_type: int, min: 1950, max: 2030 }
+      - { name: hp, label: Snaga (KS), widget: number, value_type: int, min: 0 }
+      - { name: torque, label: Moment (Nm), widget: number, value_type: int, min: 0 }
+      - name: drivetrain
+        label: Pogon
+        widget: select
+        default: rwd
+        options:
+          - { label: Zadnji, value: rwd }
+          - { label: Prednji, value: fwd }
+          - { label: 4x4, value: awd }
+      - { name: note, label: Kratak opis, widget: text, required: false }
+      - { name: image, label: Slika auta (PNG bez pozadine), widget: image, required: false }
+      - { name: order, label: Redoslijed, widget: number, value_type: int, default: 10 }
 
   - name: settings
     label: Postavke
@@ -113,4 +146,4 @@ collections:
           - { name: instagram_url, label: Instagram link, widget: string }
           - { name: instagram_handle, label: Instagram ime (bez @), widget: string }
           - { name: rules, label: Pravila (naslovnica), widget: text }
-          - { name: crew_level, label: Crew LVL, widget: number, value_type: int }
+          - { name: shipping_note, label: Napomena o dostavi (shop), widget: text }

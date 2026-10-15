@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
-import { FILTERS, KIND_COLOR, KIND_GLYPH, LIVNO, MAX_KM, PLACES, TOTAL_KM, eventsAt, formatKm, type FilterKey } from '~/lib/data'
+import { FILTERS, KIND_COLOR, KIND_GLYPH, LIVNO, MAX_KM, PLACES, TOTAL_KM, eventsAt, formatKm, placeBadge, type FilterKey } from '~/lib/data'
 import { MAP, project } from '~/lib/mapData'
 import { useCountUp } from '~/lib/useCountUp'
 import { BaseMap } from './map/BaseMap'
@@ -26,7 +26,8 @@ const START_BOX = [
 const KM_PER_PX = (111.32 * Math.cos((44 * Math.PI) / 180)) / 400
 
 export function MapSection() {
-  const [sel, setSel] = useState('Split')
+  const [sel, setSelRaw] = useState('Split')
+  const [playing, setPlaying] = useState(false)
   const [filter, setFilter] = useState<FilterKey>('sve')
   const map = usePanZoom(MAP.W, MAP.H, START_BOX)
   const firstSel = useRef(true)
@@ -39,7 +40,27 @@ export function MapSection() {
   const rows = [...PLACES].sort((a, b) => a.km - b.km)
   const fi = FILTERS.findIndex((f) => f.key === filter)
   const cycleFilter = (d: number) => setFilter(FILTERS[(fi + d + FILTERS.length) % FILTERS.length].key)
+  // Picking a place by hand stops the replay.
+  const setSel = (name: string) => {
+    setPlaying(false)
+    setSelRaw(name)
+  }
   const nextPlace = () => setSel(rows[(rows.findIndex((r) => r.name === sel) + 1) % rows.length].name)
+  const badge = placeBadge(selected.km)
+
+  // Replay: drive to every destination in order, nearest first.
+  useEffect(() => {
+    if (!playing) return
+    const at = rows.findIndex((r) => r.name === sel)
+    const last = at === rows.length - 1
+    const id = setTimeout(() => (last ? setPlaying(false) : setSelRaw(rows[at + 1].name)), last ? 3000 : 4200)
+    return () => clearTimeout(id)
+  }, [playing, sel])
+  const startReplay = () => {
+    if (playing) return setPlaying(false)
+    setSelRaw(rows[0].name)
+    setPlaying(true)
+  }
   // Longer routes take a bit longer to draw.
   const drawDur = `${Math.min(2.4, 0.7 + selected.km / 200).toFixed(2)}s`
   const km = useCountUp(selected.km)
@@ -93,7 +114,7 @@ export function MapSection() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 gap-3 px-5 pb-16 md:px-12 xl:grid-cols-[860px_minmax(0,1fr)]">
+      <div className="grid grid-cols-1 gap-3 px-5 pb-16 md:px-(--gutter) xl:grid-cols-[minmax(0,1fr)_440px]">
         {/* Map */}
         <div
           ref={map.ref}
@@ -114,7 +135,7 @@ export function MapSection() {
             } else if (e.key === '+' || e.key === '=') map.zoomBy(1.4)
             else if (e.key === '-') map.zoomBy(1 / 1.4)
           }}
-          className={`map-corners relative aspect-[860/640] w-full touch-pan-y overflow-hidden bg-[#4f9fcc] shadow-[0_0_0_4px_#fff] outline-none select-none [--pin:.6] focus-visible:shadow-[0_0_0_4px_var(--color-lime)] sm:[--pin:.8] md:touch-none xl:aspect-auto xl:h-[640px] xl:w-[860px] xl:[--pin:1] ${
+          className={`map-corners relative aspect-[860/640] w-full touch-pan-y overflow-hidden bg-[#4f9fcc] shadow-[0_0_0_4px_#fff] outline-none select-none [--pin:.6] focus-visible:shadow-[0_0_0_4px_var(--color-lime)] sm:[--pin:.8] md:touch-none xl:aspect-auto xl:h-[clamp(640px,46vw,760px)] xl:w-full xl:[--pin:1] ${
             map.moving ? 'cursor-grabbing' : 'cursor-grab'
           }`}
         >
@@ -289,9 +310,28 @@ export function MapSection() {
         {/* Side panel */}
         <div className="flex min-w-0 flex-col gap-3 px-2 md:grid md:grid-cols-2 xl:flex xl:px-0">
           <div data-reveal="right" className="relative h-[292px] -skew-x-6 overflow-hidden bg-pink shadow-[0_0_0_4px_#fff]" aria-live="polite">
+            {selected.photo && (
+              <img
+                key={selected.photo}
+                src={selected.photo}
+                alt=""
+                loading="lazy"
+                className="absolute inset-y-0 right-0 w-[48%] skew-x-6 animate-[fade-in_.5s_ease-out] object-cover [mask-image:linear-gradient(90deg,transparent,#000_45%)]"
+              />
+            )}
             <div className="absolute inset-0 flex skew-x-6 flex-col justify-between px-[26px] py-[22px]">
               <div>
-                <div className="text-base font-bold tracking-[.12em] uppercase">Odabrano odredište</div>
+                <div className="flex items-center justify-between gap-3 text-base font-bold tracking-[.12em] uppercase">
+                  <span>Odabrano odredište</span>
+                  <span
+                    key={badge.name}
+                    title={`Bedž za ${badge.tier >= 3 ? 'daleke vožnje' : 'vožnje'} od Livna`}
+                    className="flex animate-swap-in items-center gap-1.5 bg-ink px-2.5 py-0.5 text-sm tracking-[.08em] text-lime"
+                  >
+                    {'★'.repeat(badge.tier)}
+                    <span className="text-white">{badge.name}</span>
+                  </span>
+                </div>
                 <div key={sel} className="animate-swap-in">
                   <div className="mt-2 text-[54px] leading-[.9] font-extrabold uppercase italic">{selected.name}</div>
                   <div className="mt-2.5 text-[19px] leading-[1.15] font-semibold">{selEvent}</div>
@@ -317,7 +357,18 @@ export function MapSection() {
             style={{ '--i': 2 } as CSSProperties}
             className="flex min-h-0 flex-1 flex-col gap-1.5 bg-ink/80 px-[18px] py-3.5 shadow-[inset_0_0_0_2px_rgba(255,255,255,.2)]"
           >
-            <div className="text-[15px] font-bold tracking-[.12em] text-cyan uppercase">Sva odredišta</div>
+            <div className="flex items-center justify-between gap-3 text-[15px] font-bold tracking-[.12em] text-cyan uppercase">
+              <span>Sva odredišta</span>
+              <button
+                type="button"
+                onClick={startReplay}
+                aria-pressed={playing}
+                className={`fh-wipe flex cursor-pointer items-center gap-2 px-3 py-1 text-sm font-extrabold tracking-[.08em] uppercase italic ${playing ? 'text-lime' : 'text-white'}`}
+              >
+                <span aria-hidden="true">{playing ? '■' : '▶'}</span>
+                {playing ? 'Zaustavi' : 'Reprodukcija'}
+              </button>
+            </div>
             {rows.map((r) => {
               const on = r.name === sel
               return (

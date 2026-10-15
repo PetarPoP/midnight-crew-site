@@ -33,7 +33,11 @@
     /* Anchored sections land below the fixed (shrunk) header. */
     scroll-padding-top: 124px;
     --header-h: 158px;
+    /* Side padding: 1.25rem on phones, 3rem on tablets, and on wide screens
+       whatever centres the content in a 1600px column. */
+    --gutter: 1.25rem;
     @variant md {
+      --gutter: max(3rem, calc((100vw - 1600px) / 2 + 3rem));
       --header-h: 106px;
       scroll-padding-top: 72px;
     }
@@ -343,6 +347,13 @@
   to {
     opacity: 1;
     translate: 0 0;
+  }
+}
+@keyframes car-in {
+  from {
+    opacity: 0;
+    translate: var(--dx, 60px) 0;
+    scale: 0.96;
   }
 }
 @keyframes modal-in {

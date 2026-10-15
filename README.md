@@ -53,7 +53,12 @@ Sadržaj je u `src/content/` (JSON datoteke), pa se može uređivati i ručno.
 - `Q` / `E` prebacuju kartice u gornjem izborniku
 - `A` / `B` / `X` stišću gumbe koji su trenutno na ekranu (Odaberi, Natrag, Karta; na karti A bira sljedeće odredište, X otvara rutu u Google Mapsu)
 
-Narudžba iz shopa kopira popis u clipboard i otvara poruku na Instagramu.
+## Garaža, Dolazim, kalendar i narudžbe
+
+- **Garaža**: auta ekipe dodaješ u CMS-u (Garaža): ime auta, vlasnik, Instagram, snaga i fotka kao prozirni PNG (auto bez pozadine).
+- **Dolazim**: svaki događaj s datumom i mjestom ima gumb "Dolazim"; prijave se spremaju u Cloudflare D1 bazu (`DB` u `wrangler.jsonc`, tablice se same naprave).
+- **Kalendar**: `/calendar.ics` je pretplatni kalendar svih meetova ("Sinkroniziraj kalendar"), a svaki događaj ima i "U kalendar" (.ics datoteka).
+- **Narudžbe**: shop ima obrazac (ime, prezime, broj, adresa; samo BiH, plaćanje pouzećem). Narudžbe se spremaju u D1 i vidiš ih na `/narudzbe`. U Cloudflareu (Settings → Variables and Secrets) postavi secret `ORDERS_KEY` (lozinka za tu stranicu), a po želji `NOTIFY_WEBHOOK` (Discord/Slack webhook koji javi svaku novu narudžbu).
 
 ## Karta
 

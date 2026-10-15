@@ -1,4 +1,7 @@
 import { KIND_COLOR, INSTAGRAM_URL, type CrewEvent } from '~/lib/data'
+import { useEffect, useState } from 'react'
+import { downloadIcs } from '~/lib/ics'
+import { loadRsvps, rsvpOpen, toggleRsvp, useRsvp } from '~/lib/rsvp'
 import { useCountdown } from '~/lib/useCountdown'
 import { PadPrompt } from '../ui'
 import { Modal, ShareButton } from './Modal'
@@ -9,6 +12,18 @@ export function EventQuickView({ event: e, onClose }: { event: CrewEvent; onClos
   const past = cd.d === '00' && cd.h === '00' && cd.m === '00' && cd.s === '00'
   const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(e.place.split('→').pop()!.trim())}`
   const accent = KIND_COLOR[e.k]
+  const { count, going } = useRsvp(e.id)
+  const [err, setErr] = useState('')
+  const [busy, setBusy] = useState(false)
+  useEffect(() => {
+    loadRsvps([e.id])
+  }, [e.id])
+  const open = rsvpOpen(e)
+  const rsvp = async () => {
+    setBusy(true)
+    setErr((await toggleRsvp(e.id)) ?? '')
+    setBusy(false)
+  }
 
   return (
     <Modal
@@ -21,6 +36,9 @@ export function EventQuickView({ event: e, onClose }: { event: CrewEvent; onClos
             <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className="fh-wipe px-3 py-1.5 font-extrabold italic">
               Karta →
             </a>
+            <button type="button" onClick={() => downloadIcs(e)} className="fh-wipe cursor-pointer px-3 py-1.5 font-extrabold italic">
+              U kalendar
+            </button>
             <ShareButton path={`/?e=${e.id}`} title={`${e.title} · Midnight Crew`} />
           </div>
           <PadPrompt pad="b" onClick={onClose}>
@@ -50,6 +68,27 @@ export function EventQuickView({ event: e, onClose }: { event: CrewEvent; onClos
           </div>
 
           {e.description && <p className="max-w-[60ch] text-xl leading-snug text-soft">{e.description}</p>}
+
+          {open && (
+            <div className="flex flex-wrap items-center gap-4">
+              <button
+                type="button"
+                disabled={busy}
+                aria-pressed={going}
+                onClick={rsvp}
+                className={`flex cursor-pointer items-center gap-3 px-6 py-3 text-2xl font-extrabold uppercase italic transition active:scale-95 disabled:opacity-60 ${going ? 'bg-lime text-ink' : 'bg-go text-ink hover:brightness-110'}`}
+              >
+                <span aria-hidden="true" className="pad-glyph flex size-[30px] items-center justify-center rounded-full bg-ink text-base text-white not-italic">
+                  {going ? '✓' : 'A'}
+                </span>
+                {going ? 'Dolaziš' : 'Dolazim'}
+              </button>
+              <span className="text-lg font-bold text-soft">
+                {count === 0 ? 'Budi prvi koji dolazi' : `${count} ${count === 1 ? 'osoba dolazi' : 'ljudi dolazi'}`}
+              </span>
+              {err && <span role="alert" className="w-full text-base font-semibold text-stop">{err}</span>}
+            </div>
+          )}
 
           <div className="-skew-x-6 bg-ink/70 px-5 py-4 shadow-[inset_4px_0_0_var(--color-lime)]">
             <div className="skew-x-6">

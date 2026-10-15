@@ -11,6 +11,7 @@ const NAV = [
   { label: 'Kampanja', to: '/', hash: 'top' },
   { label: 'Galerija', to: '/', hash: 'galerija' },
   { label: 'Karta', to: '/', hash: 'karta' },
+  { label: 'Garaža', to: '/', hash: 'garaza' },
   { label: 'Događaji', to: '/', hash: 'dogadaji' },
   { label: 'Shop', to: '/shop', hash: undefined },
 ] as const
@@ -39,7 +40,7 @@ export function Footer() {
         </div>
       </div>
 
-      <div className="relative mx-auto grid max-w-[1400px] gap-12 px-5 pt-16 pb-10 md:grid-cols-2 md:px-12 xl:grid-cols-[1.5fr_.8fr_1.1fr_1fr]">
+      <div className="relative grid gap-12 px-5 pt-16 pb-10 md:grid-cols-2 md:px-(--gutter) xl:grid-cols-[1.5fr_.8fr_1.1fr_1fr]">
         {/* Brand */}
         <div data-reveal="left">
           <div className="flex items-center gap-4">
@@ -120,7 +121,7 @@ export function Footer() {
 
       {/* Bottom bar */}
       <div className="border-t border-white/10">
-        <div className="mx-auto flex max-w-[1400px] flex-col gap-3 px-5 py-5 text-sm font-semibold text-white/45 md:flex-row md:items-center md:justify-between md:px-12">
+        <div className="flex flex-col gap-3 px-5 py-5 text-sm font-semibold text-white/45 md:flex-row md:items-center md:justify-between md:px-(--gutter)">
           <span>© {year} Midnight Crew · Livno, BiH</span>
           <span className="font-sans text-xs">
             Fotografije:{' '}

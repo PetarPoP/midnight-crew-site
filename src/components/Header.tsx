@@ -1,7 +1,7 @@
 import { Link, useNavigate, useRouterState } from '@tanstack/react-router'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useCart } from '~/lib/cart'
-import { SETTINGS } from '~/lib/data'
+import { crewLevel } from '~/lib/data'
 import { isTyping } from '~/lib/useGameKeys'
 import { KeyHint } from './ui'
 
@@ -9,6 +9,7 @@ const TABS = [
   { label: 'Kampanja', to: '/', hash: 'top' },
   { label: 'Galerija', to: '/', hash: 'galerija' },
   { label: 'Bili smo', to: '/', hash: 'karta' },
+  { label: 'Garaža', to: '/', hash: 'garaza' },
   { label: 'Shop', to: '/shop', hash: undefined },
 ] as const
 
@@ -18,7 +19,8 @@ export function Header({ overlay = false }: { overlay?: boolean }) {
   const { count } = useCart()
   const onShop = pathname.startsWith('/shop')
   const [homeTab, setHomeTab] = useState(0)
-  const tab = onShop ? 3 : homeTab
+  const tab = onShop ? TABS.length - 1 : homeTab
+  const lvl = crewLevel()
   const [compact, setCompact] = useState(false)
   const headerRef = useRef<HTMLElement>(null)
   const [spacer, setSpacer] = useState<number>()
@@ -75,7 +77,7 @@ export function Header({ overlay = false }: { overlay?: boolean }) {
       <header
         ref={headerRef}
         data-compact={compact || undefined}
-        className={`fixed inset-x-0 top-0 z-30 flex flex-wrap items-center justify-between gap-x-3 gap-y-4 px-5 py-5 sm:gap-x-6 transition-[padding,background-color,box-shadow,gap] duration-300 ease-out md:px-12 md:py-[26px] ${
+        className={`fixed inset-x-0 top-0 z-30 flex flex-wrap items-center justify-between gap-x-3 gap-y-4 px-5 py-5 sm:gap-x-6 transition-[padding,background-color,box-shadow,gap] duration-300 ease-out md:px-(--gutter) md:py-[26px] ${
           compact
             ? 'gap-y-2 bg-ink/90 !py-2.5 shadow-[0_1px_0_rgba(255,255,255,.08),0_12px_30px_-12px_rgba(0,0,0,.7)] backdrop-blur-md md:!py-3'
             : ''
@@ -100,9 +102,12 @@ export function Header({ overlay = false }: { overlay?: boolean }) {
                 compact ? 'mt-0 max-h-0 opacity-0' : 'mt-1.5 max-h-6 opacity-100'
               }`}
             >
-              <span className="text-sm font-bold tracking-[.1em]">CREW LVL {SETTINGS.crew_level}</span>
+              <span className="text-sm font-bold tracking-[.1em]">CREW LVL {lvl.level}</span>
               <div className="h-1.5 w-[70px] -skew-x-[20deg] overflow-hidden bg-white/25 sm:w-[120px] md:w-[160px]">
-                <div className="h-full w-[68%] origin-left animate-[xp-fill_1.4s_cubic-bezier(.2,.9,.2,1)_.3s_both] bg-lime" />
+                <div
+                  className="h-full origin-left animate-[xp-fill_1.4s_cubic-bezier(.2,.9,.2,1)_.3s_both] bg-lime"
+                  style={{ width: `${Math.round(lvl.progress * 100)}%` }}
+                />
               </div>
             </div>
           </div>

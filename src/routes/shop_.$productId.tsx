@@ -31,7 +31,7 @@ export const Route = createFileRoute('/shop_/$productId')({
   notFoundComponent: () => (
     <main className="min-h-screen bg-ink">
       <Header />
-      <div className="px-5 py-20 md:px-12">
+      <div className="px-5 py-20 md:px-(--gutter)">
         <h1 className="text-6xl font-extrabold uppercase italic">Nema tog artikla</h1>
         <Link to="/shop" className="fh-wipe mt-6 inline-block px-3 py-1.5 text-xl font-extrabold uppercase italic">
           ← Natrag u shop
@@ -51,7 +51,7 @@ function ProductPage() {
     <main className="min-h-screen overflow-x-clip bg-ink">
       <Header />
 
-      <nav aria-label="Putanja" className="px-5 pt-4 text-base font-bold tracking-[.08em] text-muted uppercase md:px-12">
+      <nav aria-label="Putanja" className="px-5 pt-4 text-base font-bold tracking-[.08em] text-muted uppercase md:px-(--gutter)">
         <Link to="/shop" className="hover:text-white">
           Shop
         </Link>
@@ -59,7 +59,7 @@ function ProductPage() {
         <span className="text-white">{p.name}</span>
       </nav>
 
-      <div className="grid grid-cols-1 gap-8 px-5 pt-6 pb-16 md:px-12 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
+      <div className="grid grid-cols-1 gap-8 px-5 pt-6 pb-16 md:px-(--gutter) lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
         <div data-reveal="left" className="-skew-x-3 self-start overflow-hidden bg-panel shadow-[0_0_0_4px_#fff]">
           <div className="skew-x-3 scale-[1.04]">
             <ProductPhoto product={p} />
@@ -99,7 +99,7 @@ function ProductPage() {
         </div>
       </div>
 
-      <section aria-label="Još iz shopa" className="px-5 pb-16 md:px-12">
+      <section aria-label="Još iz shopa" className="px-5 pb-16 md:px-(--gutter)">
         <h2 data-reveal="left" className="mb-5 text-[44px] leading-none font-extrabold uppercase italic">
           Još iz shopa
         </h2>
@@ -118,7 +118,7 @@ function ProductPage() {
         </ul>
       </section>
 
-      <div className="hidden justify-end gap-3 px-12 pb-10 text-xl font-bold uppercase md:flex">
+      <div className="hidden justify-end gap-3 md:px-(--gutter) pb-10 text-xl font-bold uppercase md:flex">
         <PadPrompt pad="b" onClick={() => navigate({ to: '/shop' })}>Natrag</PadPrompt>
         <PadPrompt pad="x" to="/shop" hash="kosarica">Košarica</PadPrompt>
       </div>

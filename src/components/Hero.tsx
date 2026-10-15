@@ -101,7 +101,7 @@ export function Hero() {
       <Header overlay />
 
       {/* Tile grid */}
-      <div className="hero-fade relative z-[1] grid grid-cols-1 gap-3 px-7 pt-2 md:grid-cols-2 md:px-12 xl:absolute xl:top-(--top) xl:left-12 xl:-skew-x-6 xl:grid-cols-[380px_220px_220px] xl:grid-rows-[250px_170px_170px] xl:p-0">
+      <div className="hero-fade relative z-[1] grid grid-cols-1 gap-3 px-7 pt-2 md:grid-cols-2 md:px-(--gutter) xl:absolute xl:top-(--top) xl:left-(--gutter) xl:-skew-x-6 xl:grid-cols-[380px_220px_220px] xl:grid-rows-[250px_170px_170px] xl:p-0">
         {/* Next event + countdown */}
         <Tile i={0} className="h-[340px] md:col-span-2 xl:col-span-1 xl:row-span-2 xl:h-auto">
           <Link
@@ -204,7 +204,7 @@ export function Hero() {
       </div>
 
       {/* Unlocked event */}
-      <div className="hero-fade relative z-[1] mx-5 mt-6 md:mx-12 xl:absolute xl:top-(--top) xl:right-12 xl:m-0 xl:w-[260px]">
+      <div className="hero-fade relative z-[1] mx-5 mt-6 md:mx-(--gutter) xl:absolute xl:top-(--top) xl:right-(--gutter) xl:m-0 xl:w-[260px]">
         <div data-reveal="right" style={{ '--i': 3 } as CSSProperties}>
           <Link
             to="."
@@ -225,7 +225,7 @@ export function Hero() {
       </div>
 
       {/* Button prompts: click or press A / B / X */}
-      <div className="hero-fade relative z-[1] hidden justify-end gap-3 px-12 pt-6 pb-2 text-xl font-bold uppercase md:flex xl:absolute xl:inset-x-12 xl:bottom-[26px] xl:p-0">
+      <div className="hero-fade relative z-[1] hidden justify-end gap-3 md:px-(--gutter) pt-6 pb-2 text-xl font-bold uppercase md:flex xl:absolute xl:inset-x-(--gutter) xl:bottom-[26px] xl:p-0">
         <PadPrompt pad="a" to="/" hash="dogadaji">
           Odaberi
         </PadPrompt>

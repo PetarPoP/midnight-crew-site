@@ -1,0 +1,12 @@
+{
+  "car": "Primjer: auto 3",
+  "owner": "Ime člana",
+  "instagram": "",
+  "year": 2015,
+  "hp": 190,
+  "torque": 320,
+  "drivetrain": "fwd",
+  "note": "Instagram člana se prikaže kao gumb na kartici.",
+  "image": "",
+  "order": 3
+}

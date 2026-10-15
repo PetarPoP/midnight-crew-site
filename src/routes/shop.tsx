@@ -1,10 +1,12 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { createPortal } from 'react-dom'
 import { useState, type CSSProperties } from 'react'
 import { Header } from '~/components/Header'
 import { Footer } from '~/components/Footer'
 import { ProductPhoto } from '~/components/ProductPhoto'
 import { PadPrompt } from '~/components/ui'
-import { INSTAGRAM_URL, PRODUCTS, SETTINGS, SHOP_FILTERS, type Product, type ShopFilter } from '~/lib/data'
+import { CheckoutModal } from '~/components/shop/CheckoutModal'
+import { PRODUCTS, SHOP_FILTERS, type Product, type ShopFilter } from '~/lib/data'
 import { useOverlay } from '~/lib/overlay'
 import { useCart } from '~/lib/cart'
 
@@ -17,8 +19,6 @@ export const Route = createFileRoute('/shop')({
   }),
   component: ShopPage,
 })
-
-const ORDER_DM = `https://ig.me/m/${SETTINGS.instagram_handle}`
 
 function ShopPage() {
   const [filter, setFilter] = useState<ShopFilter>('sve')
@@ -35,7 +35,7 @@ function ShopPage() {
           <div className="absolute inset-0 bg-gradient-to-b from-ink/30 to-ink" />
         </div>
         <Header />
-        <div className="relative flex flex-wrap items-end justify-between gap-x-6 gap-y-3 px-5 pt-8 pb-8 md:px-12 md:pt-14">
+        <div className="relative flex flex-wrap items-end justify-between gap-x-6 gap-y-3 px-5 pt-8 pb-8 md:px-(--gutter) md:pt-14">
           <div>
             <div data-reveal="left" className="text-base font-bold tracking-[.12em] text-lime">
               MERCH EKIPE · {PRODUCTS.length} ARTIKLA
@@ -45,12 +45,12 @@ function ShopPage() {
             </h1>
           </div>
           <p data-reveal="right" className="max-w-[420px] text-lg font-semibold text-soft md:text-xl">
-            Naručiš ovdje, platiš i pokupiš na sljedećem meetu. Bez dostave, bez drame.
+            Naručiš ovdje, a plaćaš pouzećem kad paket stigne. Dostava u cijeloj BiH.
           </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 px-5 pb-16 md:px-12 xl:grid-cols-[minmax(0,1fr)_380px]">
+      <div className="grid grid-cols-1 gap-6 px-5 pb-16 md:px-(--gutter) xl:grid-cols-[minmax(0,1fr)_380px]">
         <ul className="order-2 grid h-fit grid-cols-1 gap-4 md:grid-cols-2 xl:order-none">
           {products.map((p, i) => (
             <li key={p.id} data-reveal="" style={{ '--i': i } as CSSProperties}>
@@ -85,7 +85,7 @@ function ShopPage() {
         </div>
       </div>
 
-      <div className="hidden justify-end gap-3 px-12 pb-10 text-xl font-bold uppercase md:flex">
+      <div className="hidden justify-end gap-3 md:px-(--gutter) pb-10 text-xl font-bold uppercase md:flex">
         <PadPrompt pad="b" onClick={() => navigate({ to: '/' })}>Natrag</PadPrompt>
         <PadPrompt pad="x" href="#kosarica">Košarica</PadPrompt>
       </div>
@@ -121,24 +121,7 @@ function ProductCard({ product: p, onOpen }: { product: Product; onOpen: () => v
 
 function CartPanel() {
   const { lines, count, total, setQty, clear } = useCart()
-  const [copied, setCopied] = useState(false)
-
-  const orderText = [
-    'Bok! Narudžba za Midnight Crew shop:',
-    ...lines.map((l) => {
-      const p = PRODUCTS.find((x) => x.id === l.productId)!
-      return `- ${l.qty}× ${p.name}${l.size ? ` (${l.size})` : ''} = ${l.qty * p.price} KM`
-    }),
-    `Ukupno: ${total} KM`,
-  ].join('\n')
-
-  const order = async () => {
-    try {
-      await navigator.clipboard.writeText(orderText)
-      setCopied(true)
-    } catch {}
-    window.open(ORDER_DM, '_blank', 'noopener')
-  }
+  const [checkout, setCheckout] = useState(false)
 
   return (
     <aside
@@ -192,24 +175,20 @@ function CartPanel() {
       <button
         type="button"
         disabled={lines.length === 0}
-        onClick={order}
+        onClick={() => setCheckout(true)}
         className="mt-4 w-full cursor-pointer bg-lime py-3.5 text-2xl font-extrabold text-ink uppercase italic transition hover:brightness-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
       >
-        Naruči preko Instagrama
+        Naruči
       </button>
       <p className="mt-2.5 text-[15px] leading-snug text-muted">
-        {copied
-          ? 'Narudžba je kopirana. Zalijepi je u poruku na Instagramu.'
-          : 'Kopiramo popis narudžbe i otvaramo poruku na Instagramu. Plaćaš i preuzimaš na meetu.'}
+        Plaćaš pouzećem. Dostava samo u Bosnu i Hercegovinu.
       </p>
       {lines.length > 0 && (
         <button type="button" onClick={clear} className="mt-3 cursor-pointer text-sm font-bold tracking-[.08em] text-muted underline-offset-4 hover:text-white hover:underline">
           ISPRAZNI KOŠARICU
         </button>
       )}
-      <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" className="sr-only">
-        Instagram profil
-      </a>
+      {checkout && createPortal(<CheckoutModal onClose={() => setCheckout(false)} />, document.body)}
     </aside>
   )
 }

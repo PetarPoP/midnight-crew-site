@@ -17,7 +17,7 @@ export function ShopSection() {
           </Link>
         }
       />
-      <ul className="grid grid-cols-1 gap-3 px-5 pb-16 md:grid-cols-3 md:px-12">
+      <ul className="grid grid-cols-1 gap-3 px-5 pb-16 md:grid-cols-3 md:px-(--gutter)">
         {PRODUCTS.map((p, i) => (
           <li key={p.id} data-reveal="" style={{ '--i': i } as CSSProperties}>
             <Link to="." search={(s) => ({ ...s, p: p.id })} resetScroll={false} className="fh-hover group block h-full bg-panel">

@@ -10,12 +10,24 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CalendarDoticsRouteImport } from './routes/calendar[.]ics'
+import { Route as NarudzbeRouteImport } from './routes/narudzbe'
 import { Route as ShopRouteImport } from './routes/shop'
 import { Route as ShopProductIdRouteImport } from './routes/shop_.$productId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CalendarDoticsRoute = CalendarDoticsRouteImport.update({
+  id: '/calendar.ics',
+  path: '/calendar.ics',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NarudzbeRoute = NarudzbeRouteImport.update({
+  id: '/narudzbe',
+  path: '/narudzbe',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ShopRoute = ShopRouteImport.update({
@@ -31,30 +43,44 @@ const ShopProductIdRoute = ShopProductIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/calendar.ics': typeof CalendarDoticsRoute
+  '/narudzbe': typeof NarudzbeRoute
   '/shop': typeof ShopRoute
   '/shop/$productId': typeof ShopProductIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/calendar.ics': typeof CalendarDoticsRoute
+  '/narudzbe': typeof NarudzbeRoute
   '/shop': typeof ShopRoute
   '/shop/$productId': typeof ShopProductIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/calendar.ics': typeof CalendarDoticsRoute
+  '/narudzbe': typeof NarudzbeRoute
   '/shop': typeof ShopRoute
   '/shop_/$productId': typeof ShopProductIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/shop' | '/shop/$productId'
+  fullPaths: '/' | '/calendar.ics' | '/narudzbe' | '/shop' | '/shop/$productId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/shop' | '/shop/$productId'
-  id: '__root__' | '/' | '/shop' | '/shop_/$productId'
+  to: '/' | '/calendar.ics' | '/narudzbe' | '/shop' | '/shop/$productId'
+  id:
+    | '__root__'
+    | '/'
+    | '/calendar.ics'
+    | '/narudzbe'
+    | '/shop'
+    | '/shop_/$productId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CalendarDoticsRoute: typeof CalendarDoticsRoute
+  NarudzbeRoute: typeof NarudzbeRoute
   ShopRoute: typeof ShopRoute
   ShopProductIdRoute: typeof ShopProductIdRoute
 }
@@ -66,6 +92,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/calendar.ics': {
+      id: '/calendar.ics'
+      path: '/calendar.ics'
+      fullPath: '/calendar.ics'
+      preLoaderRoute: typeof CalendarDoticsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/narudzbe': {
+      id: '/narudzbe'
+      path: '/narudzbe'
+      fullPath: '/narudzbe'
+      preLoaderRoute: typeof NarudzbeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/shop': {
@@ -87,6 +127,8 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CalendarDoticsRoute: CalendarDoticsRoute,
+  NarudzbeRoute: NarudzbeRoute,
   ShopRoute: ShopRoute,
   ShopProductIdRoute: ShopProductIdRoute,
 }

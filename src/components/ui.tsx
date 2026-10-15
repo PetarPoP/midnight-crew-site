@@ -108,7 +108,7 @@ export function Credit({ name, href, className = '' }: { name: string; href: str
 /** Big italic section title row with a right-aligned meta line. */
 export function SectionHead({ title, meta, id }: { title: string; meta: ReactNode; id?: string }) {
   return (
-    <div id={id} className="flex scroll-mt-4 flex-wrap items-end justify-between gap-x-6 gap-y-2 px-5 pb-6 pt-10 md:px-12 md:pt-[34px]">
+    <div id={id} className="flex scroll-mt-4 flex-wrap items-end justify-between gap-x-6 gap-y-2 px-5 pb-6 pt-10 md:px-(--gutter) md:pt-[34px]">
       <h2 data-reveal="left" className="text-[52px] leading-[.85] font-extrabold uppercase italic md:text-[72px]">
         {title}
       </h2>
