@@ -59,7 +59,7 @@ Sadržaj je u `src/content/` (JSON datoteke), pa se može uređivati i ručno.
 - **Dolazim**: svaki događaj s datumom i mjestom ima gumb "Dolazim"; prijave se spremaju u Cloudflare D1 bazu (`DB` u `wrangler.jsonc`, tablice se same naprave).
 - **Javi se (garaža)**: forma sprema poruke u D1 i šalje mail preko [Resenda](https://resend.com) (besplatan račun): secret `RESEND_API_KEY` i varijabla `MAIL_TO` (mail koji prima poruke; s `onboarding@resend.dev` pošiljateljem radi samo na mail kojim si se registrirao). Isto stiže i na Telegram ako je postavljen.
 - **Kalendar**: `/calendar.ics` je pretplatni kalendar svih meetova ("Sinkroniziraj kalendar"), a svaki događaj ima i "U kalendar" (.ics datoteka).
-- **Narudžbe**: shop ima obrazac (ime, prezime, broj, adresa; samo BiH, plaćanje pouzećem). Narudžbe se spremaju u D1 i vidiš ih u CMS-u (`/admin`, gumb "Narudžbe" dolje desno). U Cloudflareu (Settings → Variables and Secrets) postavi secret `ORDERS_KEY` (lozinka za pregled narudžbi). Za obavijesti na Telegram postavi `TELEGRAM_BOT_TOKEN` (od @BotFather) i `TELEGRAM_CHAT_ID`; po želji i `NOTIFY_WEBHOOK` (Discord/Slack).
+- **Narudžbe**: shop ima obrazac (ime, prezime, broj, adresa; samo BiH, plaćanje pouzećem). Narudžbe (i poruke iz garaže) se spremaju u D1 i vidiš ih u CMS-u (`/admin`, gumb "Narudžbe" dolje desno). U Cloudflareu (Settings → Variables and Secrets) postavi secret `ADMIN_KEY`: lozinka za taj panel. Za obavijesti na Telegram postavi `TELEGRAM_BOT_TOKEN` (od @BotFather) i `TELEGRAM_CHAT_ID`; po želji i `NOTIFY_WEBHOOK` (Discord/Slack).
 
 ## Karta
 

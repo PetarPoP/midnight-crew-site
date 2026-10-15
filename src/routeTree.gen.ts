@@ -11,8 +11,8 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CalendarDoticsRouteImport } from './routes/calendar[.]ics'
-import { Route as NarudzbeRouteImport } from './routes/narudzbe'
 import { Route as ShopRouteImport } from './routes/shop'
+import { Route as ApiOrdersRouteImport } from './routes/api/orders'
 import { Route as ShopProductIdRouteImport } from './routes/shop_.$productId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -25,14 +25,14 @@ const CalendarDoticsRoute = CalendarDoticsRouteImport.update({
   path: '/calendar.ics',
   getParentRoute: () => rootRouteImport,
 } as any)
-const NarudzbeRoute = NarudzbeRouteImport.update({
-  id: '/narudzbe',
-  path: '/narudzbe',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ShopRoute = ShopRouteImport.update({
   id: '/shop',
   path: '/shop',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiOrdersRoute = ApiOrdersRouteImport.update({
+  id: '/api/orders',
+  path: '/api/orders',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ShopProductIdRoute = ShopProductIdRouteImport.update({
@@ -44,44 +44,45 @@ const ShopProductIdRoute = ShopProductIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/calendar.ics': typeof CalendarDoticsRoute
-  '/narudzbe': typeof NarudzbeRoute
   '/shop': typeof ShopRoute
+  '/api/orders': typeof ApiOrdersRoute
   '/shop/$productId': typeof ShopProductIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/calendar.ics': typeof CalendarDoticsRoute
-  '/narudzbe': typeof NarudzbeRoute
   '/shop': typeof ShopRoute
+  '/api/orders': typeof ApiOrdersRoute
   '/shop/$productId': typeof ShopProductIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/calendar.ics': typeof CalendarDoticsRoute
-  '/narudzbe': typeof NarudzbeRoute
   '/shop': typeof ShopRoute
+  '/api/orders': typeof ApiOrdersRoute
   '/shop_/$productId': typeof ShopProductIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/calendar.ics' | '/narudzbe' | '/shop' | '/shop/$productId'
+  fullPaths:
+    '/' | '/calendar.ics' | '/shop' | '/api/orders' | '/shop/$productId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/calendar.ics' | '/narudzbe' | '/shop' | '/shop/$productId'
+  to: '/' | '/calendar.ics' | '/shop' | '/api/orders' | '/shop/$productId'
   id:
     | '__root__'
     | '/'
     | '/calendar.ics'
-    | '/narudzbe'
     | '/shop'
+    | '/api/orders'
     | '/shop_/$productId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CalendarDoticsRoute: typeof CalendarDoticsRoute
-  NarudzbeRoute: typeof NarudzbeRoute
   ShopRoute: typeof ShopRoute
+  ApiOrdersRoute: typeof ApiOrdersRoute
   ShopProductIdRoute: typeof ShopProductIdRoute
 }
 
@@ -101,18 +102,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CalendarDoticsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/narudzbe': {
-      id: '/narudzbe'
-      path: '/narudzbe'
-      fullPath: '/narudzbe'
-      preLoaderRoute: typeof NarudzbeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/shop': {
       id: '/shop'
       path: '/shop'
       fullPath: '/shop'
       preLoaderRoute: typeof ShopRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/orders': {
+      id: '/api/orders'
+      path: '/api/orders'
+      fullPath: '/api/orders'
+      preLoaderRoute: typeof ApiOrdersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/shop_/$productId': {
@@ -128,8 +129,8 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CalendarDoticsRoute: CalendarDoticsRoute,
-  NarudzbeRoute: NarudzbeRoute,
   ShopRoute: ShopRoute,
+  ApiOrdersRoute: ApiOrdersRoute,
   ShopProductIdRoute: ShopProductIdRoute,
 }
 export const routeTree = rootRouteImport
