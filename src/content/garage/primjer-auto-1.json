@@ -1,12 +1,12 @@
 {
-  "car": "Primjer: auto 1",
+  "car": "Demo: BMW 330i",
   "owner": "Ime člana",
   "instagram": "",
   "year": 2008,
   "hp": 420,
   "torque": 480,
   "drivetrain": "rwd",
-  "note": "Zamijeni ovaj primjer pravim autom u CMS-u.",
-  "image": "",
+  "note": "Demo auto. Zamijeni ga pravim autom u CMS-u.",
+  "image": "/images/garage/demo-sedan.svg",
   "order": 1
 }

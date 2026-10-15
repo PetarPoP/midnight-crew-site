@@ -4,7 +4,7 @@ import { downloadIcs } from '~/lib/ics'
 import { loadRsvps, rsvpOpen, toggleRsvp, useRsvp } from '~/lib/rsvp'
 import { useCountdown } from '~/lib/useCountdown'
 import { PadPrompt } from '../ui'
-import { Modal, ShareButton } from './Modal'
+import { Modal, MoreMenu, ShareButton } from './Modal'
 
 /** Event details in a centred dialog, opened from an event card or ?e=<id>. */
 export function EventQuickView({ event: e, onClose }: { event: CrewEvent; onClose: () => void }) {
@@ -32,7 +32,7 @@ export function EventQuickView({ event: e, onClose }: { event: CrewEvent; onClos
       onClose={onClose}
       footer={
         <>
-          <div className="flex items-center gap-2">
+          <MoreMenu>
             <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className="fh-wipe px-3 py-1.5 font-extrabold italic">
               Karta →
             </a>
@@ -40,84 +40,76 @@ export function EventQuickView({ event: e, onClose }: { event: CrewEvent; onClos
               U kalendar
             </button>
             <ShareButton path={`/?e=${e.id}`} title={`${e.title} · Midnight Crew`} />
-          </div>
+          </MoreMenu>
           <PadPrompt pad="b" onClick={onClose}>
             Zatvori
           </PadPrompt>
         </>
       }
     >
-      <div className={e.image ? 'grid md:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]' : ''}>
-        {e.image && (
-          <div className="bg-panel-2">
-            <img src={e.image} alt="" className="aspect-[16/11] size-full object-cover md:aspect-auto" />
+      {e.image && <img src={e.image} alt="" className="aspect-[16/7] w-full object-cover" />}
+      <div className="flex flex-col gap-4 px-5 pt-5 pb-5 md:px-8 md:pt-7">
+        <div className="pr-10">
+          <div className="text-sm font-bold tracking-[.14em] uppercase" style={{ color: accent }}>
+            {e.tag}
+          </div>
+          <h2 className="mt-1 text-[40px] leading-[.88] font-extrabold uppercase italic md:text-[52px]">{e.title}</h2>
+        </div>
+
+        {/* When, where and how long until it starts, in one row */}
+        <div className="flex flex-wrap items-stretch gap-2">
+          <Fact label={e.weekday} value={`${e.date} · ${e.time}`} accent={accent} />
+          <Fact label="Mjesto" value={e.place} wide />
+          <Fact label={past ? 'U tijeku' : 'Krećemo za'} value={`${cd.d}d ${cd.h}:${cd.m}:${cd.s}`} mono />
+        </div>
+
+        {open && (
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+            <button
+              type="button"
+              disabled={busy}
+              aria-pressed={going}
+              onClick={rsvp}
+              className={`flex cursor-pointer items-center gap-3 px-5 py-2.5 text-xl font-extrabold uppercase italic transition active:scale-95 disabled:opacity-60 ${going ? 'bg-lime text-ink' : 'bg-go text-ink hover:brightness-110'}`}
+            >
+              <span aria-hidden="true" className="pad-glyph flex size-[28px] items-center justify-center rounded-full bg-ink text-base text-white not-italic">
+                {going ? '✓' : 'A'}
+              </span>
+              {going ? 'Dolaziš' : 'Dolazim'}
+            </button>
+            <span className="text-base font-bold text-soft">
+              {count === 0 ? 'Budi prvi koji dolazi' : `${count} ${count === 1 ? 'osoba dolazi' : 'ljudi dolazi'}`}
+            </span>
+            {err && <span role="alert" className="w-full text-base font-semibold text-stop">{err}</span>}
           </div>
         )}
-        <div className="flex flex-col gap-6 px-5 pt-6 pb-7 md:px-8 md:pt-8">
-          <div className="pr-10">
-            <div className="text-sm font-bold tracking-[.14em] uppercase" style={{ color: accent }}>
-              {e.tag} · Događaj
-            </div>
-            <h2 className="mt-2 text-[48px] leading-[.88] font-extrabold uppercase italic md:text-[64px]">{e.title}</h2>
+
+        <details className="group border-t border-white/10 pt-3">
+          <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-bold tracking-[.12em] text-muted uppercase hover:text-white">
+            Više o događaju
+            <span aria-hidden="true" className="text-lg transition-transform group-open:rotate-45">+</span>
+          </summary>
+          <div className="mt-3 flex flex-col gap-2 text-lg leading-snug text-soft">
+            {e.description && <p className="max-w-[60ch]">{e.description}</p>}
+            <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" className="text-base font-semibold text-muted underline-offset-4 hover:text-white hover:underline">
+              Točna lokacija na Instagramu 2h prije
+            </a>
           </div>
-
-          <div className="flex flex-wrap gap-3">
-            <Fact label={e.weekday} value={e.date} accent={accent} />
-            <Fact label="Početak" value={e.time} />
-            <Fact label="Mjesto" value={e.place} wide />
-          </div>
-
-          {e.description && <p className="max-w-[60ch] text-xl leading-snug text-soft">{e.description}</p>}
-
-          {open && (
-            <div className="flex flex-wrap items-center gap-4">
-              <button
-                type="button"
-                disabled={busy}
-                aria-pressed={going}
-                onClick={rsvp}
-                className={`flex cursor-pointer items-center gap-3 px-6 py-3 text-2xl font-extrabold uppercase italic transition active:scale-95 disabled:opacity-60 ${going ? 'bg-lime text-ink' : 'bg-go text-ink hover:brightness-110'}`}
-              >
-                <span aria-hidden="true" className="pad-glyph flex size-[30px] items-center justify-center rounded-full bg-ink text-base text-white not-italic">
-                  {going ? '✓' : 'A'}
-                </span>
-                {going ? 'Dolaziš' : 'Dolazim'}
-              </button>
-              <span className="text-lg font-bold text-soft">
-                {count === 0 ? 'Budi prvi koji dolazi' : `${count} ${count === 1 ? 'osoba dolazi' : 'ljudi dolazi'}`}
-              </span>
-              {err && <span role="alert" className="w-full text-base font-semibold text-stop">{err}</span>}
-            </div>
-          )}
-
-          <div className="-skew-x-6 bg-ink/70 px-5 py-4 shadow-[inset_4px_0_0_var(--color-lime)]">
-            <div className="skew-x-6">
-              <div className="text-sm font-bold tracking-[.14em] text-lime">{past ? 'U TIJEKU' : 'KREĆEMO ZA'}</div>
-              <div className="mt-1 font-mono text-[34px] leading-none tabular-nums md:text-[42px]">
-                {cd.d}d {cd.h}:{cd.m}:{cd.s}
-              </div>
-              <a
-                href={INSTAGRAM_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-2 inline-block text-base font-semibold text-muted underline-offset-4 hover:text-white hover:underline"
-              >
-                Točna lokacija na Instagramu 2h prije
-              </a>
-            </div>
-          </div>
-        </div>
+        </details>
       </div>
     </Modal>
   )
 }
 
-function Fact({ label, value, accent, wide = false }: { label: string; value: string; accent?: string; wide?: boolean }) {
+function Fact({ label, value, accent, wide = false, mono = false }: { label: string; value: string; accent?: string; wide?: boolean; mono?: boolean }) {
   return (
-    <div className={`-skew-x-6 bg-panel-2 px-4 py-2.5 ${wide ? 'min-w-0 flex-1 basis-56' : ''}`}>
+    <div className={`-skew-x-6 bg-panel-2 px-3.5 py-2 ${wide ? 'min-w-0 flex-1 basis-40' : ''}`}>
       <div className="skew-x-6">
-        <div className="text-xs font-bold tracking-[.14em] text-muted uppercase">{label}</div>
-        <div className="text-[28px] leading-none font-extrabold uppercase italic" style={accent ? { color: accent } : undefined}>
+        <div className="text-[11px] font-bold tracking-[.14em] text-muted uppercase">{label}</div>
+        <div
+          className={`truncate leading-none font-extrabold ${mono ? 'font-mono text-[22px] tabular-nums' : 'text-[22px] uppercase italic'}`}
+          style={accent ? { color: accent } : undefined}
+        >
           {value}
         </div>
       </div>

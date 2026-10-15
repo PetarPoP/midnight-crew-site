@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 
 /**
  * Centred game-style dialog: dims and blurs the page, locks scrolling, closes
@@ -42,7 +42,7 @@ export function Modal({
   }, [onClose])
 
   return (
-    <div data-modal className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-6" role="dialog" aria-modal="true" aria-label={label}>
+    <div data-modal className="fixed inset-0 z-50 flex items-end justify-center p-0 sm:items-center sm:p-6" role="dialog" aria-modal="true" aria-label={label}>
       <button
         type="button"
         aria-label="Zatvori"
@@ -51,7 +51,7 @@ export function Modal({
         className="absolute inset-0 animate-[fade-in_.25s_ease-out] cursor-default bg-ink/75 backdrop-blur-md"
       />
       <div
-        className="modal-in relative flex max-h-full w-full max-w-[980px] flex-col overflow-hidden bg-panel shadow-[0_0_0_4px_#fff,0_40px_80px_-20px_rgba(0,0,0,.9)] max-sm:h-full"
+        className="modal-in relative flex max-h-[92dvh] w-full max-w-[820px] flex-col overflow-hidden bg-panel shadow-[0_0_0_4px_#fff,0_40px_80px_-20px_rgba(0,0,0,.9)] sm:max-h-[min(88vh,760px)]"
         style={{ borderTop: `6px solid ${accent}` }}
       >
         <button
@@ -64,7 +64,7 @@ export function Modal({
           ×
         </button>
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">{children}</div>
-        <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-t border-white/10 bg-panel px-5 py-3.5 text-lg font-bold uppercase md:px-7">
+        <div className="relative flex items-center justify-between gap-x-4 border-t border-white/10 bg-panel px-4 py-3 text-lg font-bold uppercase md:px-7">
           {footer}
         </div>
       </div>
@@ -110,5 +110,41 @@ export function ShareButton({ path, title }: { path: string; title: string }) {
       <span className="group-data-copied:hidden">Podijeli</span>
       <span className="hidden text-lime group-data-copied:inline">Link kopiran</span>
     </button>
+  )
+}
+
+/** "Više" button in a dialog footer: secondary actions in a small pop-up menu. */
+export function MoreMenu({ children }: { children: ReactNode }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!open) return
+    const off = (e: PointerEvent) => {
+      if (!ref.current?.contains(e.target as Node)) setOpen(false)
+    }
+    window.addEventListener('pointerdown', off)
+    return () => window.removeEventListener('pointerdown', off)
+  }, [open])
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-haspopup="menu"
+        onClick={() => setOpen((o) => !o)}
+        className="fh-wipe flex cursor-pointer items-center gap-2 px-3 py-1.5 font-extrabold uppercase italic"
+      >
+        Više <span aria-hidden="true" className="text-xl leading-none">⋯</span>
+      </button>
+      {open && (
+        <div
+          role="menu"
+          onClick={(e) => (e.target as HTMLElement).closest('a,button') && setTimeout(() => setOpen(false), 50)}
+          className="animate-swap-in absolute bottom-full left-0 mb-2 flex min-w-[220px] flex-col items-stretch gap-1 bg-ink p-2 shadow-[0_0_0_2px_#fff,0_20px_40px_-10px_rgba(0,0,0,.9)] [&>*]:justify-start"
+        >
+          {children}
+        </div>
+      )}
+    </div>
   )
 }

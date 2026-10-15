@@ -1,12 +1,12 @@
 {
-  "car": "Primjer: auto 2",
+  "car": "Demo: Golf GTI",
   "owner": "Ime člana",
   "instagram": "",
   "year": 1999,
   "hp": 280,
   "torque": 310,
   "drivetrain": "awd",
-  "note": "Dodaj fotku auta bez pozadine (prozirni PNG).",
-  "image": "",
+  "note": "Demo auto. Zamijeni ga pravim autom u CMS-u.",
+  "image": "/images/garage/demo-hatch.svg",
   "order": 2
 }

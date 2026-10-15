@@ -233,8 +233,11 @@ export function usePanZoom(W: number, H: number, initial: Box) {
     const down = (e: PointerEvent) => {
       if ((e.target as HTMLElement).closest('[data-map-ui]')) return
       if (e.pointerType === 'mouse' && e.button !== 0) return
+      if (e.pointerType === 'touch' && twoFingerOnly()) return
       pts.set(e.pointerId, local(e))
-      if (e.pointerType === 'touch' && twoFingerOnly() && pts.size < 2) return
+      begin()
+    }
+    const begin = () => {
       last = centroid()
       startPt = { x: last.x, y: last.y }
       dragged.current = false
@@ -244,9 +247,12 @@ export function usePanZoom(W: number, H: number, initial: Box) {
       target.current = cur.current
     }
     const move = (e: PointerEvent) => {
+      if (e.pointerType === 'touch' && twoFingerOnly()) return
       if (!pts.has(e.pointerId)) return
       pts.set(e.pointerId, local(e))
-      if (e.pointerType === 'touch' && twoFingerOnly() && pts.size < 2) return
+      step(e.pointerId)
+    }
+    const step = (captureId?: number) => {
       const c = centroid()
       if (!last) {
         last = c
@@ -257,9 +263,10 @@ export function usePanZoom(W: number, H: number, initial: Box) {
         dragged.current = true
         holding.current = true
         setMoving(true)
-        try {
-          el.setPointerCapture(e.pointerId)
-        } catch {}
+        if (captureId !== undefined)
+          try {
+            el.setPointerCapture(captureId)
+          } catch {}
       }
       const v = target.current
       const dx = c.x - last.x
@@ -282,7 +289,11 @@ export function usePanZoom(W: number, H: number, initial: Box) {
       last = c
     }
     const up = (e: PointerEvent) => {
+      if (e.pointerType === 'touch' && twoFingerOnly()) return
       if (!pts.delete(e.pointerId)) return
+      end()
+    }
+    const end = () => {
       last = pts.size ? centroid() : null
       if (!pts.size) {
         holding.current = false
@@ -323,6 +334,39 @@ export function usePanZoom(W: number, H: number, initial: Box) {
       zoomAt(1.8, p.x, p.y)
     }
 
+    // Phones: one finger scrolls the page, two fingers move and zoom the map.
+    // Touch events (not pointer events) so the page can be stopped from
+    // scrolling or zooming while two fingers are on the map.
+    const syncTouches = (e: TouchEvent) => {
+      pts.clear()
+      for (const t of Array.from(e.touches)) if (el.contains(t.target as Node)) pts.set(t.identifier, local(t))
+    }
+    const tStart = (e: TouchEvent) => {
+      if (!twoFingerOnly() || (e.target as HTMLElement).closest('[data-map-ui]')) return
+      if (e.touches.length < 2) return
+      e.preventDefault()
+      syncTouches(e)
+      if (pts.size >= 2) begin()
+    }
+    const tMove = (e: TouchEvent) => {
+      if (!twoFingerOnly() || e.touches.length < 2 || pts.size < 2) return
+      e.preventDefault()
+      syncTouches(e)
+      lastMove.t = performance.now()
+      if (pts.size >= 2) step()
+    }
+    const tEnd = (e: TouchEvent) => {
+      if (!twoFingerOnly() || !pts.size) return
+      if (e.touches.length >= 2) {
+        syncTouches(e)
+        last = centroid()
+        return
+      }
+      // Lifting one of two fingers ends the gesture; the remaining finger scrolls again.
+      pts.clear()
+      end()
+    }
+
     // Focus or scrollIntoView can scroll an overflow:hidden box; keep it pinned.
     const noScroll = () => {
       if (el.scrollTop || el.scrollLeft) {
@@ -338,6 +382,10 @@ export function usePanZoom(W: number, H: number, initial: Box) {
     window.addEventListener('pointerup', up)
     window.addEventListener('pointercancel', up)
     el.addEventListener('wheel', wheel, { passive: false })
+    el.addEventListener('touchstart', tStart, { passive: false })
+    el.addEventListener('touchmove', tMove, { passive: false })
+    el.addEventListener('touchend', tEnd)
+    el.addEventListener('touchcancel', tEnd)
     el.addEventListener('click', click, true)
     el.addEventListener('dblclick', dbl)
     return () => {
@@ -348,6 +396,10 @@ export function usePanZoom(W: number, H: number, initial: Box) {
       window.removeEventListener('pointerup', up)
       window.removeEventListener('pointercancel', up)
       el.removeEventListener('wheel', wheel)
+      el.removeEventListener('touchstart', tStart)
+      el.removeEventListener('touchmove', tMove)
+      el.removeEventListener('touchend', tEnd)
+      el.removeEventListener('touchcancel', tEnd)
       el.removeEventListener('click', click, true)
       el.removeEventListener('dblclick', dbl)
     }

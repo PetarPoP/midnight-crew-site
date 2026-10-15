@@ -11,6 +11,8 @@ const DRIVE = { rwd: 'Zadnji', fwd: 'Prednji', awd: '4×4' } as const
 export function GarageSection() {
   const [i, setI] = useState(0)
   const [join, setJoin] = useState(false)
+  // Swipe left/right on the car to change it
+  const swipe = useRef<{ x: number; y: number } | null>(null)
   const [dir, setDir] = useState(1)
   const ref = useRef<HTMLElement>(null)
   const n = GARAGE.length
@@ -95,14 +97,25 @@ export function GarageSection() {
               </div>
 
               {/* Stage */}
-              <div className="relative flex items-center justify-center px-4 py-6 md:px-16">
+              <div
+                className="relative flex cursor-grab touch-pan-y items-center justify-center px-4 py-6 select-none active:cursor-grabbing md:px-16"
+                onPointerDown={(e) => (swipe.current = { x: e.clientX, y: e.clientY })}
+                onPointerUp={(e) => {
+                  const s = swipe.current
+                  swipe.current = null
+                  if (!s) return
+                  const dx = e.clientX - s.x
+                  if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(e.clientY - s.y)) go(dx < 0 ? 1 : -1)
+                }}
+                onPointerCancel={() => (swipe.current = null)}
+              >
                 <div
                   key={car.id}
                   className="relative z-[1] w-full max-w-[860px] animate-[car-in_.5s_cubic-bezier(.2,.9,.2,1)_both]"
                   style={{ '--dx': `${dir * 80}px` } as CSSProperties}
                 >
-                  {/* Turntable the car stands on */}
-                  <div aria-hidden="true" className="garage-turntable absolute top-full left-[-9%] -z-[1] w-[118%] -translate-y-[58%]" />
+                  {/* Soft contact shadow on the floor */}
+                  <div aria-hidden="true" className="garage-shadow absolute top-full left-[2%] -z-[1] w-[96%] -translate-y-[62%]" />
                   <CarImage car={car} />
                   {/* Reflection on the polished floor */}
                   <div aria-hidden="true" className="garage-reflection pointer-events-none absolute inset-x-0 top-full">

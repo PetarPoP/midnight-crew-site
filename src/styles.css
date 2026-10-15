@@ -436,7 +436,7 @@
   position: absolute;
   inset: 62% -40% 0 -40%;
   background:
-    radial-gradient(40% 60% at 50% 0%, rgba(255, 24, 160, 0.22), transparent 70%),
+    radial-gradient(40% 60% at 50% 0%, rgba(255, 255, 255, 0.08), transparent 70%),
     repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.07) 0 1px, transparent 1px 8%),
     repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0 1px, transparent 1px 22%),
     linear-gradient(180deg, #1d1729, #0a0810);
@@ -451,15 +451,11 @@
   height: 2px;
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
 }
-/* Turntable: a glowing ring on the floor */
-.garage-turntable {
-  aspect-ratio: 6 / 1;
+/* Contact shadow under the car */
+.garage-shadow {
+  aspect-ratio: 8 / 1;
   border-radius: 50%;
-  background:
-    radial-gradient(closest-side, rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0.35) 62%, transparent 63%),
-    radial-gradient(closest-side, transparent 88%, rgba(255, 255, 255, 0.55) 90%, rgba(255, 24, 160, 0.55) 93%, transparent 97%),
-    radial-gradient(closest-side, rgba(255, 255, 255, 0.08), transparent);
-  filter: drop-shadow(0 0 14px rgba(255, 24, 160, 0.45));
+  background: radial-gradient(closest-side, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.35) 60%, transparent);
 }
 .garage-reflection {
   transform: scaleY(-1);
