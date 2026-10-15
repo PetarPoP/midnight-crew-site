@@ -78,16 +78,51 @@ export const TOTAL_KM = PLACES.reduce((a, p) => a + p.km * 2, 0)
 
 export const formatKm = (n: number) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.')
 
-/** Drive time at an average of 68 km/h, e.g. "1h 04". */
-export const driveTime = (km: number) => {
-  const m = Math.round((km / 68) * 60)
-  return `${Math.floor(m / 60)}h ${String(m % 60).padStart(2, '0')}`
-}
-
 export const eventsAt = (place: string) => EVENTS.filter((e) => e.place.includes(place))
 
-export const PRODUCTS = [
-  { id: 'majica', name: 'Majica', price: 35, placeholder: 'Fotka majice' },
-  { id: 'hoodie', name: 'Hoodie', price: 70, placeholder: 'Fotka hoodice' },
-  { id: 'naljepnica', name: 'Naljepnica', price: 10, placeholder: 'Fotka naljepnice' },
+export type Product = {
+  id: string
+  name: string
+  price: number
+  placeholder: string
+  category: 'odjeca' | 'dodaci'
+  blurb: string
+  sizes: string[]
+}
+
+export const PRODUCTS: Product[] = [
+  {
+    id: 'majica',
+    name: 'Majica',
+    price: 35,
+    placeholder: 'Fotka majice',
+    category: 'odjeca',
+    blurb: 'Crna pamučna majica s Midnight Crew logom sprijeda i rutom Livno–Buško na leđima.',
+    sizes: ['S', 'M', 'L', 'XL'],
+  },
+  {
+    id: 'hoodie',
+    name: 'Hoodie',
+    price: 70,
+    placeholder: 'Fotka hoodice',
+    category: 'odjeca',
+    blurb: 'Debela hoodica s kapuljačom za noćne cruiseove. Vezeni MC logo, rozi detalji.',
+    sizes: ['S', 'M', 'L', 'XL'],
+  },
+  {
+    id: 'naljepnica',
+    name: 'Naljepnica',
+    price: 10,
+    placeholder: 'Fotka naljepnice',
+    category: 'dodaci',
+    blurb: 'Vodootporna naljepnica za staklo ili branik, 20 cm. Svijetli rozo kad je uhvate farovi.',
+    sizes: [],
+  },
 ]
+
+export const SHOP_FILTERS = [
+  { key: 'sve', label: 'Sve' },
+  { key: 'odjeca', label: 'Odjeća' },
+  { key: 'dodaci', label: 'Dodaci' },
+] as const
+export type ShopFilter = (typeof SHOP_FILTERS)[number]['key']

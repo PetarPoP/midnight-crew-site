@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type CSSProperties } from 'react'
 import {
   FILTERS,
   KIND_COLOR,
@@ -6,13 +6,13 @@ import {
   MAX_KM,
   PLACES,
   TOTAL_KM,
-  driveTime,
   eventsAt,
   formatKm,
   type FilterKey,
 } from '~/lib/data'
 import { MAP_SVG } from './mapSvg'
-import { KeyHint, PadButton, SectionHead } from './ui'
+import { KeyHint, PadPrompt, SectionHead } from './ui'
+import { useCountUp } from '~/lib/useCountUp'
 
 const LEGEND = [
   { label: 'Naš meet', color: KIND_COLOR.nas },
@@ -32,6 +32,12 @@ export function MapSection() {
   const rows = [...PLACES].sort((a, b) => a.km - b.km)
   const fi = FILTERS.findIndex((f) => f.key === filter)
   const cycleFilter = (d: number) => setFilter(FILTERS[(fi + d + FILTERS.length) % FILTERS.length].key)
+  const nextPlace = () => setSel(rows[(rows.findIndex((r) => r.name === sel) + 1) % rows.length].name)
+  // Longer routes take a bit longer to draw.
+  const drawDur = `${(0.6 + selected.km / 260).toFixed(2)}s`
+  const km = useCountUp(selected.km)
+  const minutes = useCountUp(Math.round((selected.km / 68) * 60))
+  const waypointUrl = `https://www.google.com/maps/dir/?api=1&origin=Livno&destination=${encodeURIComponent(selected.name)}&travelmode=driving`
 
   return (
     <section aria-labelledby="karta-title">
@@ -60,7 +66,7 @@ export function MapSection() {
 
       <div className="grid grid-cols-1 gap-3 px-5 pb-16 md:px-12 xl:grid-cols-[860px_minmax(0,1fr)]">
         {/* Map */}
-        <div className="map-corners relative aspect-[860/640] w-full overflow-hidden bg-[#4f9fcc] shadow-[0_0_0_4px_#fff] [--pin:.5] sm:[--pin:.8] xl:aspect-auto xl:h-[640px] xl:w-[860px] xl:[--pin:1]">
+        <div data-reveal="left" className="map-corners relative aspect-[860/640] w-full overflow-hidden bg-[#4f9fcc] shadow-[0_0_0_4px_#fff] [--pin:.5] sm:[--pin:.8] xl:aspect-auto xl:h-[640px] xl:w-[860px] xl:[--pin:1]">
           <div dangerouslySetInnerHTML={{ __html: MAP_SVG }} />
 
           {/* Active route from Livno */}
@@ -70,11 +76,25 @@ export function MapSection() {
             className="pointer-events-none absolute inset-0 block size-full"
             aria-hidden="true"
           >
-            <g fill="none" strokeLinecap="round" strokeLinejoin="round">
-              <path d={selected.route} stroke="#14101c" strokeWidth="3.6" opacity=".55" />
-              <path d={selected.route} stroke="#fff" strokeWidth="2.9" />
-              <path d={selected.route} stroke="var(--color-pink)" strokeWidth="2" />
-              <path d={selected.route} stroke="#fff" strokeWidth=".7" strokeDasharray=".8 3.2" className="animate-route-dash" />
+            {/* key restarts the draw animation every time the destination changes */}
+            <g key={sel} fill="none" strokeLinecap="round" strokeLinejoin="round" style={{ '--dur': drawDur } as CSSProperties}>
+              <path d={selected.route} pathLength={1} className="route-draw" stroke="#14101c" strokeWidth="3.6" opacity=".55" />
+              <path d={selected.route} pathLength={1} className="route-draw" stroke="#fff" strokeWidth="2.9" />
+              <path d={selected.route} pathLength={1} className="route-draw" stroke="var(--color-pink)" strokeWidth="2" />
+              <g className="route-after">
+                <path d={selected.route} stroke="#fff" strokeWidth=".7" strokeDasharray=".8 3.2" className="animate-route-dash" />
+              </g>
+              {/* the "car" leading the route */}
+              <circle r="1.6" fill="#fff" stroke="var(--color-pink)" strokeWidth=".8">
+                <animateMotion
+                  dur={drawDur}
+                  path={selected.route}
+                  fill="freeze"
+                  calcMode="spline"
+                  keyTimes="0;1"
+                  keySplines=".6 0 .3 1"
+                />
+              </circle>
             </g>
           </svg>
 
@@ -105,7 +125,7 @@ export function MapSection() {
                 onClick={() => setSel(p.name)}
                 aria-pressed={on}
                 aria-label={`${p.name}, ${p.km} km od Livna`}
-                className="absolute cursor-pointer transition-[transform,opacity] duration-200 ease-[cubic-bezier(.3,1.5,.5,1)] hover:brightness-110"
+                className="group absolute cursor-pointer transition-[transform,opacity] duration-200 ease-[cubic-bezier(.3,1.5,.5,1)] hover:z-30 hover:brightness-110 focus-visible:outline-none"
                 style={{
                   left: p.x,
                   top: p.y,
@@ -114,7 +134,7 @@ export function MapSection() {
                   zIndex: on ? 20 : 5,
                 }}
               >
-                <div className="hex flex h-[52px] w-[46px] items-center justify-center bg-white">
+                <div className="hex flex h-[52px] w-[46px] items-center justify-center bg-white transition-transform duration-200 ease-[cubic-bezier(.3,1.6,.5,1)] group-hover:scale-115 group-focus-visible:scale-115">
                   <div
                     className="hex flex h-[46px] w-10 items-center justify-center text-xl font-extrabold text-ink italic"
                     style={{ background: KIND_COLOR[p.k] }}
@@ -124,7 +144,7 @@ export function MapSection() {
                 </div>
                 <div
                   className={`absolute px-2.5 py-0.5 text-[15px] font-extrabold tracking-[.04em] whitespace-nowrap uppercase italic ${
-                    on ? 'bg-white text-ink' : 'bg-ink text-white'
+                    on ? 'bg-white text-ink' : 'bg-ink text-white group-hover:bg-white group-hover:text-ink group-focus-visible:bg-white group-focus-visible:text-ink'
                   } ${
                     p.name === 'Tomislavgrad'
                       ? 'top-3 left-[50px] -skew-x-12'
@@ -147,10 +167,11 @@ export function MapSection() {
                 type="button"
                 onClick={() => setFilter(f.key)}
                 aria-pressed={f.key === filter}
-                className={`cursor-pointer -skew-x-[14deg] bg-ink/80 uppercase italic px-3.5 py-2 text-lg ${
-                  f.key === filter ? 'text-[#f2f1ee]' : 'text-[#8e909b] hover:text-white'
+                className={`fh-wipe cursor-pointer px-3.5 py-2 text-lg uppercase italic ${
+                  f.key === filter ? '' : 'text-[#8e909b]'
                 }`}
               >
+                <span aria-hidden="true" className="absolute inset-0 -z-20 -skew-x-[14deg] bg-ink/80" />
                 {f.label}
               </button>
             ))}
@@ -186,38 +207,44 @@ export function MapSection() {
               <div className="h-2 w-[167px] border-[3px] border-t-0 border-white shadow-[0_1px_3px_rgba(0,0,0,.5)]" />
               50 km
             </div>
-            <div className="flex items-center gap-2 bg-ink/80 px-3.5 py-2 text-lg font-bold uppercase">
-              <PadButton letter="A" className="!size-7 bg-go !text-[15px]" />
-              Odaberi
-              <PadButton letter="X" className="ml-2 !size-7 bg-cyan !text-[15px] text-ink" />
-              Waypoint
+            <div className="pointer-events-auto flex items-center gap-4 bg-ink/80 px-3.5 py-2 text-lg font-bold uppercase">
+              <PadPrompt pad="a" onClick={nextPlace} glyphClassName="!size-7 !text-[15px]">
+                Odaberi
+              </PadPrompt>
+              <PadPrompt pad="x" href={waypointUrl} glyphClassName="!size-7 !text-[15px]">
+                Waypoint
+              </PadPrompt>
             </div>
           </div>
         </div>
 
         {/* Side panel */}
         <div className="flex min-w-0 flex-col gap-3 px-2 md:grid md:grid-cols-2 xl:flex xl:px-0">
-          <div className="relative h-[292px] -skew-x-6 overflow-hidden bg-pink shadow-[0_0_0_4px_#fff]" aria-live="polite">
+          <div data-reveal="right" className="relative h-[292px] -skew-x-6 overflow-hidden bg-pink shadow-[0_0_0_4px_#fff]" aria-live="polite">
             <div className="absolute inset-0 flex skew-x-6 flex-col justify-between px-[26px] py-[22px]">
               <div>
                 <div className="text-base font-bold tracking-[.12em] uppercase">Odabrano odredište</div>
-                <div className="mt-2 text-[54px] leading-[.9] font-extrabold uppercase italic">{selected.name}</div>
-                <div className="mt-2.5 text-[19px] leading-[1.15] font-semibold">{selEvent}</div>
+                <div key={sel} className="animate-swap-in">
+                  <div className="mt-2 text-[54px] leading-[.9] font-extrabold uppercase italic">{selected.name}</div>
+                  <div className="mt-2.5 text-[19px] leading-[1.15] font-semibold">{selEvent}</div>
+                </div>
               </div>
               <div className="flex items-end gap-[26px]">
                 <div>
-                  <div className="font-mono text-[44px] leading-none">{selected.km}</div>
+                  <div className="font-mono text-[44px] leading-none tabular-nums">{km}</div>
                   <div className="text-[15px] font-bold tracking-[.08em] uppercase">km od Livna</div>
                 </div>
                 <div>
-                  <div className="font-mono text-[44px] leading-none">{driveTime(selected.km)}</div>
+                  <div className="font-mono text-[44px] leading-none tabular-nums">
+                    {Math.floor(minutes / 60)}h {String(minutes % 60).padStart(2, '0')}
+                  </div>
                   <div className="text-[15px] font-bold tracking-[.08em] uppercase">vožnja</div>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="flex min-h-0 flex-1 flex-col gap-1.5 bg-ink/80 px-[18px] py-3.5 shadow-[inset_0_0_0_2px_rgba(255,255,255,.2)]">
+          <div data-reveal="right" style={{ '--i': 2 } as CSSProperties} className="flex min-h-0 flex-1 flex-col gap-1.5 bg-ink/80 px-[18px] py-3.5 shadow-[inset_0_0_0_2px_rgba(255,255,255,.2)]">
             <div className="text-[15px] font-bold tracking-[.12em] text-cyan uppercase">Sva odredišta</div>
             {rows.map((r) => {
               const on = r.name === sel
@@ -227,14 +254,16 @@ export function MapSection() {
                   type="button"
                   onClick={() => setSel(r.name)}
                   aria-pressed={on}
-                  className={`grid cursor-pointer -skew-x-6 grid-cols-[118px_minmax(0,1fr)_62px] items-center gap-2.5 px-2 py-1 text-left ${
-                    on ? 'bg-white/15' : 'hover:bg-white/10'
+                  className={`group grid cursor-pointer -skew-x-6 grid-cols-[118px_minmax(0,1fr)_62px] items-center gap-2.5 px-2 py-1 text-left transition-[background-color,translate] duration-200 hover:translate-x-1.5 focus-visible:outline-2 focus-visible:outline-white ${
+                    on ? 'bg-white/15 shadow-[inset_4px_0_0_var(--color-pink)]' : 'hover:bg-white/10'
                   }`}
                 >
-                  <span className={`text-[19px] font-extrabold uppercase italic ${on ? 'text-white' : 'text-soft'}`}>{r.name}</span>
+                  <span className={`text-[19px] font-extrabold uppercase italic transition-colors group-hover:text-white ${on ? 'text-white' : 'text-soft'}`}>
+                    {r.name}
+                  </span>
                   <span className="h-1.5 bg-white/15">
                     <span
-                      className="block h-full"
+                      className="block h-full transition-[width] duration-700 ease-out"
                       style={{ width: `${((r.km / MAX_KM) * 100).toFixed(1)}%`, background: KIND_COLOR[r.k] }}
                     />
                   </span>

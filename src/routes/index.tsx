@@ -1,5 +1,4 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useState } from 'react'
 import { Hero } from '~/components/Hero'
 import { MapSection } from '~/components/MapSection'
 import { EventsSection } from '~/components/EventsSection'
@@ -11,14 +10,12 @@ export const Route = createFileRoute('/')({
 })
 
 function Home() {
-  const [cart, setCart] = useState(0)
-
   return (
     <main className="overflow-x-clip bg-ink">
-      <Hero cart={cart} />
+      <Hero />
       <MapSection />
       <EventsSection />
-      <ShopSection onAdd={() => setCart((c) => c + 1)} />
+      <ShopSection />
       <Footer />
     </main>
   )

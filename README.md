@@ -20,8 +20,9 @@ npm run preview
 
 ## Struktura
 
-- `src/routes/` stranice (`__root.tsx` je HTML okvir, `index.tsx` naslovnica)
-- `src/components/` sekcije: `Hero`, `MapSection`, `EventsSection`, `ShopSection`, `Footer`
+- `src/routes/` stranice (`__root.tsx` je HTML okvir, `index.tsx` naslovnica, `shop.tsx` shop s košaricom)
+- `src/components/` sekcije: `Header`, `Hero`, `MapSection`, `EventsSection`, `ShopSection`, `Footer`
+- `src/lib/cart.tsx` košarica (pamti se u pregledniku)
 - `src/lib/data.ts` događaji, odredišta, proizvodi i Instagram link, sve na jednom mjestu
 - `src/components/mapSvg.ts` podloga karte (obala, teren, ceste)
 - `public/images/` fotografije
@@ -30,7 +31,10 @@ Događaje, cijene i odredišta mijenjaš u `src/lib/data.ts`. Fotke proizvoda jo
 
 ## Tipkovnica
 
-`Q` i `E` prebacuju između kartica u gornjem izborniku.
+- `Q` / `E` prebacuju kartice u gornjem izborniku
+- `A` / `B` / `X` stišću gumbe koji su trenutno na ekranu (Odaberi, Natrag, Karta; na karti A bira sljedeće odredište, X otvara rutu u Google Mapsu)
+
+Narudžba iz shopa kopira popis u clipboard i otvara poruku na Instagramu.
 
 ## Fotografije
 

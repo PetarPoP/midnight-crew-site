@@ -7,6 +7,10 @@ import '@fontsource/barlow-condensed/800.css'
 import '@fontsource/barlow-condensed/800-italic.css'
 import '@fontsource/share-tech-mono/400.css'
 import appCss from '~/styles.css?url'
+import { CartProvider } from '~/lib/cart'
+import { useGameKeys } from '~/lib/useGameKeys'
+import { RevealObserver } from '~/components/RevealObserver'
+import { CartToast } from '~/components/CartToast'
 
 export const Route = createRootRoute({
   head: () => ({
@@ -24,14 +28,27 @@ export const Route = createRootRoute({
       { rel: 'stylesheet', href: appCss },
       { rel: 'icon', href: '/favicon.svg', type: 'image/svg+xml' },
     ],
+    // Flag JS before first paint so scroll-reveal elements start hidden
+    // (without JS the page simply shows everything).
+    scripts: [
+      {
+        children:
+          "if(!matchMedia('(prefers-reduced-motion: reduce)').matches)document.documentElement.classList.add('reveal-ready')",
+      },
+    ],
   }),
   component: RootComponent,
 })
 
 function RootComponent() {
+  useGameKeys()
   return (
     <RootDocument>
-      <Outlet />
+      <CartProvider>
+        <Outlet />
+        <CartToast />
+      </CartProvider>
+      <RevealObserver />
     </RootDocument>
   )
 }
