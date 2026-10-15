@@ -22,5 +22,8 @@ declare module 'cloudflare:workers' {
     ORDERS_KEY?: string
     /** Optional Discord/Slack-style webhook that gets a message for every order. */
     NOTIFY_WEBHOOK?: string
+    /** Telegram bot token (from @BotFather) and the chat id that gets order messages. */
+    TELEGRAM_BOT_TOKEN?: string
+    TELEGRAM_CHAT_ID?: string
   }
 }

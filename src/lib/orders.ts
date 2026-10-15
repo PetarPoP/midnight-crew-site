@@ -34,12 +34,15 @@ export const placeOrder = createServerFn({ method: 'POST' }).validator((d: Order
     .run()
   const id = r.meta.last_row_id
 
-  if (env.NOTIFY_WEBHOOK) {
-    const text = `🛒 Nova narudžba #${id}: ${data.firstName} ${data.lastName}, ${phone}, ${data.street}, ${data.postal} ${data.city}\n${items.map((i) => `${i.qty}× ${i.name}${i.size ? ` (${i.size})` : ''}`).join(', ')} = ${total} KM (pouzećem)`
-    try {
-      await fetch(env.NOTIFY_WEBHOOK, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ content: text, text }), signal: AbortSignal.timeout(4000) })
-    } catch {}
-  }
+  const text = `🛒 Nova narudžba #${id}\n${data.firstName} ${data.lastName}, ${phone}\n${data.street}, ${data.postal} ${data.city}\n${items.map((i) => `${i.qty}× ${i.name}${i.size ? ` (${i.size})` : ''}`).join(', ')}\nUkupno ${total} KM (pouzećem)${data.note ? `\nNapomena: ${data.note}` : ''}`
+  const post = (url: string, body: unknown) =>
+    fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body), signal: AbortSignal.timeout(4000) }).catch(() => {})
+  await Promise.all([
+    env.TELEGRAM_BOT_TOKEN && env.TELEGRAM_CHAT_ID
+      ? post(`https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`, { chat_id: env.TELEGRAM_CHAT_ID, text })
+      : undefined,
+    env.NOTIFY_WEBHOOK ? post(env.NOTIFY_WEBHOOK, { content: text, text }) : undefined,
+  ])
   return { id }
 })
 

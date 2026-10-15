@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { listOrders, setOrderStatus, STATUSES, type OrderRow } from '~/lib/orders'
 
 export const Route = createFileRoute('/narudzbe')({
@@ -14,6 +14,7 @@ function Orders() {
 
   const load = async (k = key) => {
     setMsg('')
+    try { sessionStorage.setItem('mc-ok', k) } catch {}
     try {
       const r = await listOrders({ data: { key: k } })
       if (r.ok) setOrders(r.orders)
@@ -22,6 +23,12 @@ function Orders() {
       setMsg('Greška pri učitavanju.')
     }
   }
+  useEffect(() => {
+    try {
+      const k = sessionStorage.getItem('mc-ok')
+      if (k) { setKey(k); load(k) }
+    } catch {}
+  }, [])
   const status = async (id: number, s: string) => {
     await setOrderStatus({ data: { key, id, status: s } })
     setOrders((o) => o && o.map((x) => (x.id === id ? { ...x, status: s } : x)))

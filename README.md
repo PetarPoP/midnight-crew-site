@@ -58,7 +58,7 @@ Sadržaj je u `src/content/` (JSON datoteke), pa se može uređivati i ručno.
 - **Garaža**: auta ekipe dodaješ u CMS-u (Garaža): ime auta, vlasnik, Instagram, snaga i fotka kao prozirni PNG (auto bez pozadine).
 - **Dolazim**: svaki događaj s datumom i mjestom ima gumb "Dolazim"; prijave se spremaju u Cloudflare D1 bazu (`DB` u `wrangler.jsonc`, tablice se same naprave).
 - **Kalendar**: `/calendar.ics` je pretplatni kalendar svih meetova ("Sinkroniziraj kalendar"), a svaki događaj ima i "U kalendar" (.ics datoteka).
-- **Narudžbe**: shop ima obrazac (ime, prezime, broj, adresa; samo BiH, plaćanje pouzećem). Narudžbe se spremaju u D1 i vidiš ih na `/narudzbe`. U Cloudflareu (Settings → Variables and Secrets) postavi secret `ORDERS_KEY` (lozinka za tu stranicu), a po želji `NOTIFY_WEBHOOK` (Discord/Slack webhook koji javi svaku novu narudžbu).
+- **Narudžbe**: shop ima obrazac (ime, prezime, broj, adresa; samo BiH, plaćanje pouzećem). Narudžbe se spremaju u D1 i vidiš ih u CMS-u (`/admin`, gumb "Narudžbe" dolje desno). U Cloudflareu (Settings → Variables and Secrets) postavi secret `ORDERS_KEY` (lozinka za pregled narudžbi). Za obavijesti na Telegram postavi `TELEGRAM_BOT_TOKEN` (od @BotFather) i `TELEGRAM_CHAT_ID`; po želji i `NOTIFY_WEBHOOK` (Discord/Slack).
 
 ## Karta
 
