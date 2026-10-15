@@ -4,7 +4,7 @@ import { PRODUCTS } from '~/lib/data'
 import { ProductPhoto } from './ProductPhoto'
 import { SectionHead } from './ui'
 
-/** Shop teaser on the home page; each card opens the full shop. */
+/** Shop teaser on the home page; each card opens a quick view in place. */
 export function ShopSection() {
   return (
     <section aria-label="Shop">
@@ -20,7 +20,7 @@ export function ShopSection() {
       <ul className="grid grid-cols-1 gap-3 px-5 pb-16 md:grid-cols-3 md:px-12">
         {PRODUCTS.map((p, i) => (
           <li key={p.id} data-reveal="" style={{ '--i': i } as CSSProperties}>
-            <Link to="/shop" search={{ p: p.id }} className="fh-hover group block h-full bg-panel">
+            <Link to="." search={(s) => ({ ...s, p: p.id })} resetScroll={false} className="fh-hover group block h-full bg-panel">
               <ProductPhoto product={p} />
               <div className="flex items-center justify-between px-5 py-4">
                 <span className="text-[32px] font-extrabold uppercase italic">{p.name}</span>

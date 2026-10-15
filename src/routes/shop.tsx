@@ -1,17 +1,14 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { useCallback, useState, type CSSProperties } from 'react'
+import { useState, type CSSProperties } from 'react'
 import { Header } from '~/components/Header'
 import { Footer } from '~/components/Footer'
 import { ProductPhoto } from '~/components/ProductPhoto'
 import { PadPrompt } from '~/components/ui'
-import { INSTAGRAM_URL, PRODUCTS, SHOP_FILTERS, productById, type Product, type ShopFilter } from '~/lib/data'
-import { QuickView } from '~/components/shop/QuickView'
+import { INSTAGRAM_URL, PRODUCTS, SETTINGS, SHOP_FILTERS, type Product, type ShopFilter } from '~/lib/data'
+import { useOverlay } from '~/lib/overlay'
 import { useCart } from '~/lib/cart'
 
 export const Route = createFileRoute('/shop')({
-  // ?p=<product id> opens the quick view, so back closes it and links can open it.
-  validateSearch: (search: Record<string, unknown>): { p?: string } =>
-    typeof search.p === 'string' && productById(search.p) ? { p: search.p } : {},
   head: () => ({
     meta: [
       { title: 'Shop · Midnight Crew' },
@@ -21,17 +18,13 @@ export const Route = createFileRoute('/shop')({
   component: ShopPage,
 })
 
-const ORDER_DM = 'https://ig.me/m/midnight_crew_livno'
+const ORDER_DM = `https://ig.me/m/${SETTINGS.instagram_handle}`
 
 function ShopPage() {
   const [filter, setFilter] = useState<ShopFilter>('sve')
   const navigate = useNavigate()
-  const { p: openId } = Route.useSearch()
   const products = PRODUCTS.filter((p) => filter === 'sve' || p.category === filter)
-  const open = openId ? productById(openId) : undefined
-
-  const openProduct = (id: string) => navigate({ to: '/shop', search: { p: id }, resetScroll: false })
-  const close = useCallback(() => navigate({ to: '/shop', search: {}, resetScroll: false, replace: true }), [navigate])
+  const { openProduct } = useOverlay()
 
   return (
     <main className="min-h-screen overflow-x-clip bg-ink">
@@ -98,8 +91,6 @@ function ShopPage() {
       </div>
 
       <Footer />
-
-      {open && <QuickView key={open.id} product={open} onClose={close} />}
     </main>
   )
 }

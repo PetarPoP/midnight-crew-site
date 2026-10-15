@@ -5,7 +5,7 @@ import { Header } from '~/components/Header'
 import { ProductPhoto } from '~/components/ProductPhoto'
 import { BuyBox } from '~/components/shop/BuyBox'
 import { PadPrompt } from '~/components/ui'
-import { PRODUCTS, productById } from '~/lib/data'
+import { PRODUCTS, SITE_URL, productById } from '~/lib/data'
 import { useCart } from '~/lib/cart'
 
 export const Route = createFileRoute('/shop_/$productId')({
@@ -14,9 +14,17 @@ export const Route = createFileRoute('/shop_/$productId')({
     if (!product) throw notFound()
     return product
   },
-  head: ({ loaderData }) => ({
-    meta: loaderData
-      ? [{ title: `${loaderData.name} · Shop · Midnight Crew` }, { name: 'description', content: loaderData.blurb }]
+  // Link previews (Instagram, WhatsApp, Messenger...) show the product.
+  head: ({ loaderData: p }) => ({
+    meta: p
+      ? [
+          { title: `${p.name} · Shop · Midnight Crew` },
+          { name: 'description', content: p.blurb },
+          { property: 'og:title', content: `${p.name} · ${p.price} KM · Midnight Crew` },
+          { property: 'og:description', content: p.blurb },
+          { property: 'og:image', content: SITE_URL + (p.image || '/images/hero-bg.jpg') },
+          { property: 'og:url', content: `${SITE_URL}/shop/${p.id}` },
+        ]
       : [],
   }),
   component: ProductPage,
@@ -98,7 +106,7 @@ function ProductPage() {
         <ul className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {others.map((o, i) => (
             <li key={o.id} data-reveal="" style={{ '--i': i } as CSSProperties}>
-              <Link to="/shop" search={{ p: o.id }} className="fh-hover group flex items-center gap-5 bg-panel pr-5">
+              <Link to="." search={(s) => ({ ...s, p: o.id })} resetScroll={false} className="fh-hover group flex items-center gap-5 bg-panel pr-5">
                 <div className="w-40 shrink-0">
                   <ProductPhoto product={o} />
                 </div>

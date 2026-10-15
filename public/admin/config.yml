@@ -1,0 +1,116 @@
+# Sveltia CMS: https://sveltiacms.app/en/docs
+# Every save is a commit to GitHub, and Cloudflare deploys it automatically.
+backend:
+  name: github
+  repo: PetarPoP/midnight-crew-site
+  branch: main
+  # Sign in with a GitHub personal access token (no OAuth server needed).
+  auth_methods: [token]
+  commit_messages:
+    create: 'CMS: dodano {{collection}} "{{slug}}"'
+    update: 'CMS: uređeno {{collection}} "{{slug}}"'
+    delete: 'CMS: obrisano {{collection}} "{{slug}}"'
+    uploadMedia: 'CMS: učitana slika "{{path}}"'
+    deleteMedia: 'CMS: obrisana slika "{{path}}"'
+
+site_url: https://midnight-crew-site.pop-sites.workers.dev
+media_folder: public/images/uploads
+public_folder: /images/uploads
+
+slug:
+  encoding: ascii
+  clean_accents: true
+
+collections:
+  - name: events
+    label: Događaji
+    label_singular: Događaj
+    description: Meetovi i vožnje. Prošli događaji se sami sakriju 6 sati nakon početka.
+    folder: src/content/events
+    format: json
+    create: true
+    identifier_field: title
+    slug: '{{title}}'
+    summary: '{{date | date("DD.MM.YYYY. HH:mm")}} · {{title}}'
+    sortable_fields: [date, title]
+    fields:
+      - { name: title, label: Naziv, widget: string }
+      - name: date
+        label: Datum i vrijeme
+        widget: datetime
+        format: 'YYYY-MM-DDTHH:mm'
+      - { name: place, label: Mjesto, widget: string, hint: 'Npr. "Livno" ili "Livno → Buško jezero". Događaj se prikazuje i na karti kod mjesta istog imena.' }
+      - name: kind
+        label: Vrsta
+        widget: select
+        default: nas
+        options:
+          - { label: 'Naš meet', value: nas }
+          - { label: 'Idemo na', value: idemo }
+      - { name: description, label: Opis, widget: text, required: false }
+      - { name: image, label: Slika, widget: image, required: false }
+
+  - name: products
+    label: Shop
+    label_singular: Artikl
+    folder: src/content/products
+    format: json
+    create: true
+    identifier_field: name
+    slug: '{{name}}'
+    summary: '{{name}} · {{price}} KM'
+    sortable_fields: [order, name, price]
+    fields:
+      - { name: name, label: Naziv, widget: string }
+      - { name: price, label: Cijena (KM), widget: number, value_type: int, min: 0 }
+      - name: category
+        label: Kategorija
+        widget: select
+        options:
+          - { label: Odjeća, value: odjeca }
+          - { label: Dodaci, value: dodaci }
+      - { name: order, label: Redoslijed, widget: number, value_type: int, default: 10, hint: Manji broj se prikazuje prvi. }
+      - { name: image, label: Fotka, widget: image, required: false }
+      - { name: blurb, label: Opis, widget: text }
+      - { name: details, label: Detalji, widget: list, required: false, hint: 'Kratke stavke, npr. "100% pamuk".' }
+      - { name: sizes, label: Veličine, widget: list, required: false, hint: 'Npr. S, M, L, XL. Ostavi prazno ako artikl nema veličine.' }
+
+  - name: places
+    label: Gdje smo bili
+    label_singular: Mjesto
+    description: >-
+      Mjesta na karti. Ruta i kilometri od Livna izračunaju se sami kod sljedećeg deploya.
+      Koordinate: desni klik na mjesto u Google Maps i klik na brojeve da ih kopiraš
+      (prvi broj je lat, drugi lon).
+    folder: src/content/places
+    format: json
+    create: true
+    identifier_field: name
+    slug: '{{name}}'
+    summary: '{{name}}'
+    fields:
+      - { name: name, label: Naziv, widget: string }
+      - { name: lat, label: Geografska širina (lat), widget: number, value_type: float, min: 42.45, max: 46.35, step: 0.0001, hint: 'Npr. 43.508 za Split. Karta pokriva 42.45 do 46.35.' }
+      - { name: lon, label: Geografska dužina (lon), widget: number, value_type: float, min: 14.6, max: 19.7, step: 0.0001, hint: 'Npr. 16.44 za Split. Karta pokriva 14.6 do 19.7.' }
+      - name: kind
+        label: Vrsta
+        widget: select
+        default: bili
+        options:
+          - { label: 'Bili smo', value: bili }
+          - { label: 'Naš meet', value: nas }
+          - { label: 'Idemo na', value: idemo }
+
+  - name: settings
+    label: Postavke
+    files:
+      - name: settings
+        label: Postavke stranice
+        file: src/content/settings.json
+        format: json
+        fields:
+          - { name: site_url, label: Adresa stranice, widget: string, hint: 'Koristi se za preglede linkova (Instagram, WhatsApp). Promijeni ako spojiš svoju domenu.' }
+          - { name: instagram_url, label: Instagram link, widget: string }
+          - { name: instagram_handle, label: Instagram ime (bez @), widget: string }
+          - { name: rules, label: Pravila (naslovnica), widget: text }
+          - { name: crew_level, label: Crew LVL, widget: number, value_type: int }

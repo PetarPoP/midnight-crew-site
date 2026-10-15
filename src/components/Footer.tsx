@@ -1,6 +1,6 @@
 import { Link } from '@tanstack/react-router'
 import type { ReactNode } from 'react'
-import { EVENTS, INSTAGRAM_URL, PLACES, TOTAL_KM, formatKm } from '~/lib/data'
+import { EVENTS, INSTAGRAM_URL, PLACES, SETTINGS, TOTAL_KM, formatKm, upcomingEvents } from '~/lib/data'
 
 const CREDITS = [
   { name: 'Samuele Errico Piccarini', href: 'https://unsplash.com/@samuele_piccarini' },
@@ -18,7 +18,7 @@ const NAV = [
 const TICKER = ['Midnight Crew', 'Livno', 'Noćni meetovi', 'Cruise', 'BiH · HR', 'Od 22:00']
 
 export function Footer() {
-  const next = EVENTS[0]
+  const [next] = upcomingEvents()
   const year = new Date().getFullYear()
 
   return (
@@ -83,8 +83,9 @@ export function Footer() {
         <div data-reveal>
           <ColTitle>Sljedeći meet</ColTitle>
           <Link
-            to="/"
-            hash="dogadaji"
+            to="."
+            search={(s) => ({ ...s, e: next.id })}
+            resetScroll={false}
             className="group relative block overflow-hidden bg-panel p-5 no-underline shadow-[inset_4px_0_0_var(--color-lime)] transition-transform duration-200 hover:-translate-y-1"
           >
             <div className="flex items-baseline justify-between gap-3">
@@ -111,7 +112,7 @@ export function Footer() {
           >
             <span className="flex skew-x-12 items-center gap-3">
               <InstagramIcon />
-              <span className="text-xl font-extrabold uppercase italic">@midnight_crew_livno</span>
+              <span className="text-xl font-extrabold uppercase italic">@{SETTINGS.instagram_handle}</span>
             </span>
           </a>
         </div>

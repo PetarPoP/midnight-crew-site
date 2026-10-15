@@ -1,0 +1,19 @@
+{
+  "name": "Hoodie",
+  "price": 70,
+  "category": "odjeca",
+  "order": 2,
+  "image": "",
+  "blurb": "Debela hoodica s kapuljačom za noćne cruiseove. Vezeni MC logo, rozi detalji.",
+  "details": [
+    "Pamuk i poliester, 320 g/m²",
+    "Vezeni logo, rozi vezice",
+    "Klokan džep"
+  ],
+  "sizes": [
+    "S",
+    "M",
+    "L",
+    "XL"
+  ]
+}

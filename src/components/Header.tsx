@@ -1,6 +1,7 @@
 import { Link, useNavigate, useRouterState } from '@tanstack/react-router'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useCart } from '~/lib/cart'
+import { SETTINGS } from '~/lib/data'
 import { isTyping } from '~/lib/useGameKeys'
 import { KeyHint } from './ui'
 
@@ -99,7 +100,7 @@ export function Header({ overlay = false }: { overlay?: boolean }) {
                 compact ? 'mt-0 max-h-0 opacity-0' : 'mt-1.5 max-h-6 opacity-100'
               }`}
             >
-              <span className="text-sm font-bold tracking-[.1em]">CREW LVL 26</span>
+              <span className="text-sm font-bold tracking-[.1em]">CREW LVL {SETTINGS.crew_level}</span>
               <div className="h-1.5 w-[70px] -skew-x-[20deg] overflow-hidden bg-white/25 sm:w-[120px] md:w-[160px]">
                 <div className="h-full w-[68%] origin-left animate-[xp-fill_1.4s_cubic-bezier(.2,.9,.2,1)_.3s_both] bg-lime" />
               </div>

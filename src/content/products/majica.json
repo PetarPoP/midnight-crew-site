@@ -1,0 +1,19 @@
+{
+  "name": "Majica",
+  "price": 35,
+  "category": "odjeca",
+  "order": 1,
+  "image": "",
+  "blurb": "Crna pamučna majica s Midnight Crew logom sprijeda i rutom Livno–Buško na leđima.",
+  "details": [
+    "100% pamuk, 180 g/m²",
+    "Print sprijeda i na leđima",
+    "Unisex kroj"
+  ],
+  "sizes": [
+    "S",
+    "M",
+    "L",
+    "XL"
+  ]
+}

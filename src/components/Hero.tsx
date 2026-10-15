@@ -1,6 +1,6 @@
 import { Link } from '@tanstack/react-router'
 import { useEffect, useRef, type CSSProperties, type ReactNode } from 'react'
-import { EVENTS, INSTAGRAM_URL, PRODUCTS, TOTAL_KM, formatKm } from '~/lib/data'
+import { INSTAGRAM_URL, PRODUCTS, SETTINGS, TOTAL_KM, formatKm, upcomingEvents } from '~/lib/data'
 import { useCountdown } from '~/lib/useCountdown'
 import { Header } from './Header'
 import { Credit, PadPrompt } from './ui'
@@ -76,8 +76,8 @@ function useHeroScroll() {
 }
 
 export function Hero() {
-  const cd = useCountdown()
-  const featured = EVENTS[1]
+  const [next, featured = next] = upcomingEvents()
+  const cd = useCountdown(next.iso)
   const ref = useHeroScroll()
 
   return (
@@ -104,14 +104,21 @@ export function Hero() {
       <div className="hero-fade relative z-[1] grid grid-cols-1 gap-3 px-7 pt-2 md:grid-cols-2 md:px-12 xl:absolute xl:top-(--top) xl:left-12 xl:-skew-x-6 xl:grid-cols-[380px_220px_220px] xl:grid-rows-[250px_170px_170px] xl:p-0">
         {/* Next event + countdown */}
         <Tile i={0} className="h-[340px] md:col-span-2 xl:col-span-1 xl:row-span-2 xl:h-auto">
-          <Link to="/" hash="dogadaji" className={`${TILE} bg-pink shadow-[0_0_0_4px_#fff]`}>
+          <Link
+            to="."
+            search={(s) => ({ ...s, e: next.id })}
+            resetScroll={false}
+            className={`${TILE} bg-pink shadow-[0_0_0_4px_#fff]`}
+          >
             <div className={`${TILE_INNER} flex flex-col justify-between px-8 py-[26px] md:px-[34px]`}>
               <div>
                 <div className="text-lg font-bold tracking-[.12em] uppercase">Sljedeći događaj</div>
-                <div className="mt-2.5 text-[52px] leading-[.88] font-extrabold uppercase italic md:text-[64px]">
-                  Subotnje
-                  <br />
-                  okupljanje
+                <div
+                  className={`mt-2.5 line-clamp-3 leading-[.88] font-extrabold text-balance uppercase italic ${
+                    next.title.length > 16 ? 'text-[44px] md:text-[52px]' : 'text-[52px] md:text-[64px]'
+                  }`}
+                >
+                  {next.title}
                 </div>
               </div>
               <div>
@@ -121,7 +128,9 @@ export function Hero() {
                 >
                   <Digits value={`${cd.d}:${cd.h}:${cd.m}:${cd.s}`} />
                 </div>
-                <div className="mt-2 text-lg font-bold tracking-[.06em] uppercase">Sub {cd.label || EVENTS[0].date} · 22:00 · Livno</div>
+                <div className="mt-2 truncate text-lg font-bold tracking-[.06em] uppercase">
+                  {next.weekday} {next.date} · {next.time} · {next.place}
+                </div>
               </div>
             </div>
           </Link>
@@ -162,7 +171,7 @@ export function Hero() {
             <div className={`${TILE_INNER} flex flex-col justify-between px-[26px] py-[18px]`}>
               <div className="text-base font-bold tracking-[.12em] text-cyan uppercase">Pravila festivala</div>
               <p className="text-[22px] leading-[1.1] font-semibold md:text-[26px]">
-                Bez članarine, bez drame, bez paljenja guma na meetu. Jedino pravilo: poštuj mjesto i ljude oko sebe.
+                {SETTINGS.rules}
               </p>
             </div>
           </div>
@@ -197,7 +206,12 @@ export function Hero() {
       {/* Unlocked event */}
       <div className="hero-fade relative z-[1] mx-5 mt-6 md:mx-12 xl:absolute xl:top-(--top) xl:right-12 xl:m-0 xl:w-[260px]">
         <div data-reveal="right" style={{ '--i': 3 } as CSSProperties}>
-          <Link to="/" hash="dogadaji" className="fh-hover block border-l-[6px] border-lime bg-ink/85 px-[22px] py-[18px]">
+          <Link
+            to="."
+            search={(s) => ({ ...s, e: featured.id })}
+            resetScroll={false}
+            className="fh-hover block border-l-[6px] border-lime bg-ink/85 px-[22px] py-[18px]"
+          >
             <div className="text-[15px] font-bold tracking-[.12em] text-lime">
               NOVO · OTKLJUČANO
               <span className="ml-2 inline-block size-2 animate-pulse rounded-full bg-lime align-middle" />

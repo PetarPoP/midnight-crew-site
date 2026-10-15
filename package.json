@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev --port 3000",
-    "build": "vite build",
+    "build": "node scripts/fetch-routes.mjs && vite build",
     "preview": "vite preview --port 3000",
     "deploy": "npm run build && wrangler deploy",
     "typecheck": "tsc --noEmit",

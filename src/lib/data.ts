@@ -1,25 +1,69 @@
-import { MAP, project } from './mapData'
+import { project } from './mapData'
+import { routeTo } from './routes'
 
 export type Kind = 'nas' | 'idemo' | 'bili'
 
+// Content lives in src/content (edited through the CMS at /admin) and is
+// bundled at build time.
+type Json<T> = Record<string, { default: T }>
+const byFile = <T,>(files: Json<T>) =>
+  Object.entries(files).map(([path, mod]) => ({ id: path.split('/').pop()!.replace(/\.json$/, ''), ...mod.default }))
+
+type Settings = { site_url: string; instagram_url: string; instagram_handle: string; rules: string; crew_level: number }
+export const SETTINGS = (import.meta.glob<{ default: Settings }>('../content/settings.json', { eager: true })['../content/settings.json'])
+  .default
+export const SITE_URL = SETTINGS.site_url.replace(/\/$/, '')
+export const INSTAGRAM_URL = SETTINGS.instagram_url
+
 export type CrewEvent = {
+  id: string
+  /** Local date and time, "2026-10-17T22:00". */
+  iso: string
+  /** "17.10." */
   date: string
+  /** "22:00" */
+  time: string
+  weekday: string
   title: string
   place: string
-  time: string
   tag: string
   k: Exclude<Kind, 'bili'>
+  description: string
+  image: string
 }
 
-export const INSTAGRAM_URL = 'https://www.instagram.com/midnight_crew_livno/'
+const WEEKDAYS = ['Ned', 'Pon', 'Uto', 'Sri', 'Čet', 'Pet', 'Sub']
+type EventFile = { title: string; date: string; place: string; kind: 'nas' | 'idemo'; description?: string; image?: string }
 
-export const EVENTS: CrewEvent[] = [
-  { date: '17.10.', title: 'Subotnje okupljanje', place: 'Livno', time: '22:00', tag: 'Naš meet', k: 'nas' },
-  { date: '24.10.', title: 'Noćni cruise do jezera', place: 'Livno → Buško jezero', time: '23:00', tag: 'Naš meet', k: 'nas' },
-  { date: '31.10.', title: 'Halloween car meet', place: 'Split', time: '21:00', tag: 'Idemo na', k: 'idemo' },
-  { date: '14.11.', title: 'Regionalni meet', place: 'Mostar', time: '20:00', tag: 'Idemo na', k: 'idemo' },
-  { date: '28.11.', title: 'Zatvaranje sezone', place: 'Livno', time: '21:00', tag: 'Naš meet', k: 'nas' },
-]
+export const EVENTS: CrewEvent[] = byFile(import.meta.glob<{ default: EventFile }>('../content/events/*.json', { eager: true }))
+  .map((e) => {
+    // Read the parts straight from the string so server and browser agree
+    // regardless of their time zones.
+    const [, y, mo, d, hh = '00', mm = '00'] = /^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2}))?/.exec(e.date) ?? []
+    const iso = `${y}-${mo}-${d}T${hh}:${mm}`
+    return {
+      id: e.id,
+      iso,
+      date: `${+d}.${+mo}.`,
+      time: `${hh}:${mm}`,
+      weekday: WEEKDAYS[new Date(Date.UTC(+y, +mo - 1, +d)).getUTCDay()],
+      title: e.title,
+      place: e.place,
+      tag: e.kind === 'idemo' ? 'Idemo na' : 'Naš meet',
+      k: e.kind,
+      description: e.description ?? '',
+      image: e.image ?? '',
+    }
+  })
+  .sort((a, b) => a.iso.localeCompare(b.iso))
+
+export const eventById = (id: string) => EVENTS.find((e) => e.id === id)
+
+/** Events that haven't finished yet (kept for 6 hours after they start). */
+export function upcomingEvents(now = Date.now()) {
+  const list = EVENTS.filter((e) => new Date(e.iso).getTime() + 6 * 3600e3 > now)
+  return list.length ? list : EVENTS.slice(-1)
+}
 
 export const FILTERS: { key: 'sve' | Exclude<Kind, 'bili'>; label: string }[] = [
   { key: 'sve', label: 'Sve' },
@@ -35,24 +79,17 @@ export const KIND_COLOR: Record<Kind, string> = {
 }
 export const KIND_GLYPH: Record<Kind, string> = { nas: '★', idemo: '⚑', bili: '✓' }
 
-// Destinations. Distances and drive times are real driving routes from Livno
-// (OSRM), baked into mapData.ts by scripts/build-map.py.
+// Destinations (src/content/places). Distances, drive times and route shapes
+// are real driving routes from Livno, cached by scripts/fetch-routes.mjs.
 export const LIVNO = { lon: 17.008, lat: 43.827 }
 
-const PLACE_DATA: { name: string; lon: number; lat: number; k: Kind }[] = [
-  { name: 'Buško jezero', lon: 17.03, lat: 43.672, k: 'nas' },
-  { name: 'Tomislavgrad', lon: 17.226, lat: 43.718, k: 'bili' },
-  { name: 'Imotski', lon: 17.216, lat: 43.447, k: 'bili' },
-  { name: 'Split', lon: 16.44, lat: 43.508, k: 'idemo' },
-  { name: 'Mostar', lon: 17.808, lat: 43.343, k: 'idemo' },
-  { name: 'Sarajevo', lon: 18.413, lat: 43.856, k: 'bili' },
-  { name: 'Zagreb', lon: 15.982, lat: 45.815, k: 'bili' },
-]
+type PlaceFile = { name: string; lon: number; lat: number; kind: Kind }
+const PLACE_DATA = byFile(import.meta.glob<{ default: PlaceFile }>('../content/places/*.json', { eager: true }))
 
 export const PLACES = PLACE_DATA.map((p) => {
-  const r = MAP.routes[p.name as keyof typeof MAP.routes]
+  const r = routeTo(p.name, p.lon, p.lat)
   const [x, y] = project(p.lon, p.lat)
-  return { ...p, x, y, km: r.km, minutes: r.min, route: r.d, bbox: r.bbox }
+  return { name: p.name, lon: p.lon, lat: p.lat, k: p.kind, x, y, km: r.km, minutes: r.min, route: r.d, bbox: r.bbox }
 })
 export type PlaceWithKm = (typeof PLACES)[number]
 
@@ -62,7 +99,7 @@ export const TOTAL_KM = PLACES.reduce((a, p) => a + p.km * 2, 0)
 
 export const formatKm = (n: number) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.')
 
-export const eventsAt = (place: string) => EVENTS.filter((e) => e.place.includes(place))
+export const eventsAt = (place: string) => upcomingEvents().filter((e) => e.place.includes(place))
 
 export type Product = {
   id: string
@@ -73,40 +110,20 @@ export type Product = {
   blurb: string
   details: string[]
   sizes: string[]
+  image: string
 }
 
-export const PRODUCTS: Product[] = [
-  {
-    id: 'majica',
-    name: 'Majica',
-    price: 35,
-    placeholder: 'Fotka majice',
-    category: 'odjeca',
-    blurb: 'Crna pamučna majica s Midnight Crew logom sprijeda i rutom Livno–Buško na leđima.',
-    details: ['100% pamuk, 180 g/m²', 'Print sprijeda i na leđima', 'Unisex kroj'],
-    sizes: ['S', 'M', 'L', 'XL'],
-  },
-  {
-    id: 'hoodie',
-    name: 'Hoodie',
-    price: 70,
-    placeholder: 'Fotka hoodice',
-    category: 'odjeca',
-    blurb: 'Debela hoodica s kapuljačom za noćne cruiseove. Vezeni MC logo, rozi detalji.',
-    details: ['Pamuk i poliester, 320 g/m²', 'Vezeni logo, rozi vezice', 'Klokan džep'],
-    sizes: ['S', 'M', 'L', 'XL'],
-  },
-  {
-    id: 'naljepnica',
-    name: 'Naljepnica',
-    price: 10,
-    placeholder: 'Fotka naljepnice',
-    category: 'dodaci',
-    blurb: 'Vodootporna naljepnica za staklo ili branik, 20 cm. Svijetli rozo kad je uhvate farovi.',
-    details: ['20 × 6 cm', 'Vodootporna, UV otporna', 'Reflektirajuća roza boja'],
-    sizes: [],
-  },
-]
+type ProductFile = Omit<Product, 'id' | 'placeholder'> & { order?: number }
+
+export const PRODUCTS: Product[] = byFile(import.meta.glob<{ default: ProductFile }>('../content/products/*.json', { eager: true }))
+  .sort((a, b) => (a.order ?? 99) - (b.order ?? 99) || a.name.localeCompare(b.name))
+  .map(({ order: _order, ...p }) => ({
+    ...p,
+    details: p.details ?? [],
+    sizes: p.sizes ?? [],
+    image: p.image ?? '',
+    placeholder: `Fotka: ${p.name.toLowerCase()}`,
+  }))
 
 export const SHOP_FILTERS = [
   { key: 'sve', label: 'Sve' },
