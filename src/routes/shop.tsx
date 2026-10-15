@@ -92,7 +92,7 @@ function ShopPage() {
         </div>
       </div>
 
-      <div className="hidden justify-end gap-7 px-12 pb-10 text-xl font-bold uppercase md:flex">
+      <div className="hidden justify-end gap-3 px-12 pb-10 text-xl font-bold uppercase md:flex">
         <PadPrompt pad="b" onClick={() => navigate({ to: '/' })}>Natrag</PadPrompt>
         <PadPrompt pad="x" href="#kosarica">Košarica</PadPrompt>
       </div>

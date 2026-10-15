@@ -29,7 +29,7 @@ export function PadPrompt(
     ({ to: ComponentProps<typeof Link>['to']; hash?: string } | { href: string } | { onClick: () => void }),
 ) {
   const { pad, children, className = '', glyphClassName = '' } = props
-  const cls = `pad-prompt flex cursor-pointer items-center gap-2 uppercase transition-colors hover:text-lime ${className}`
+  const cls = `pad-prompt flex cursor-pointer items-center gap-2 uppercase no-underline ${className}`
   const inner = (
     <>
       <PadButton letter={pad.toUpperCase()} className={`${PAD_COLOR[pad]} ${pad === 'x' ? 'text-ink' : ''} ${glyphClassName}`} />

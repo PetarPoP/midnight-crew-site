@@ -60,15 +60,7 @@ export function MapSection() {
   const pxPerKm = map.view.s / KM_PER_PX
   const scaleKm = [5, 10, 20, 25, 50, 100, 200].find((k) => k * pxPerKm >= 70) ?? 200
 
-  const worldStyle = {
-    width: MAP.W,
-    height: MAP.H,
-    transform: `translate3d(${map.view.x}px, ${map.view.y}px, 0) scale(${map.view.s})`,
-    transformOrigin: '0 0',
-    transition: map.animating ? 'transform .7s cubic-bezier(.3,.8,.3,1)' : 'none',
-    willChange: map.animating || map.moving ? 'transform' : 'auto',
-    '--s': map.view.s,
-  } as CSSProperties
+  const worldStyle = { ...map.worldStyle, width: MAP.W, height: MAP.H } as CSSProperties
 
   // Markers keep the same on-screen size at every zoom level.
   const marker = (scale = 1) => ({ transform: `translate(-50%,-50%) scale(calc(var(--pin) * ${scale} / var(--s)))` })
@@ -123,7 +115,7 @@ export function MapSection() {
             map.moving ? 'cursor-grabbing' : 'cursor-grab'
           }`}
         >
-          <div className="absolute top-0 left-0" style={worldStyle}>
+          <div ref={map.worldRef} className="absolute top-0 left-0" style={worldStyle}>
             <BaseMap />
 
             {/* Active route from Livno */}
@@ -262,7 +254,7 @@ export function MapSection() {
               />
               {scaleKm} km
             </div>
-            <div data-map-ui className="pointer-events-auto flex items-center gap-4 bg-ink/80 px-3.5 py-2 text-lg font-bold uppercase">
+            <div data-map-ui className="pointer-events-auto flex items-center gap-1 bg-ink/80 px-2 py-1.5 text-lg font-bold uppercase">
               <PadPrompt pad="a" onClick={nextPlace} glyphClassName="!size-7 !text-[15px]">
                 Odaberi
               </PadPrompt>

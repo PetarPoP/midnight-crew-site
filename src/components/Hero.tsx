@@ -22,6 +22,26 @@ function Tile({ i, className = '', children }: { i: number; className?: string; 
 const TILE = 'fh-hover block h-full -skew-x-6 xl:skew-x-0'
 const TILE_INNER = 'absolute inset-0 skew-x-6'
 
+/**
+ * Countdown text where each character is its own element keyed by position
+ * and value, so only the digit that actually changed plays the tick animation.
+ */
+function Digits({ value }: { value: string }) {
+  return (
+    <>
+      {value.split('').map((ch, i) =>
+        ch === ':' ? (
+          <span key={i}>:</span>
+        ) : (
+          <span key={`${i}-${ch}`} className="inline-block animate-[tick_.4s_ease-out]">
+            {ch}
+          </span>
+        ),
+      )}
+    </>
+  )
+}
+
 export function Hero() {
   const cd = useCountdown()
   const featured = EVENTS[1]
@@ -61,10 +81,7 @@ export function Hero() {
                   className="font-mono text-[40px] leading-none tabular-nums md:text-[50px]"
                   aria-label="Odbrojavanje do sljedećeg okupljanja"
                 >
-                  {cd.d}:{cd.h}:{cd.m}:
-                  <span key={cd.s} className="inline-block animate-[tick_.4s_ease-out]">
-                    {cd.s}
-                  </span>
+                  <Digits value={`${cd.d}:${cd.h}:${cd.m}:${cd.s}`} />
                 </div>
                 <div className="mt-2 text-lg font-bold tracking-[.06em] uppercase">
                   Sub {cd.label || EVENTS[0].date} · 22:00 · Livno
@@ -166,7 +183,7 @@ export function Hero() {
       </div>
 
       {/* Button prompts: click or press A / B / X */}
-      <div className="relative z-[1] hidden justify-end gap-7 px-12 pt-6 pb-2 text-xl font-bold uppercase md:flex xl:absolute xl:inset-x-12 xl:bottom-[26px] xl:p-0">
+      <div className="relative z-[1] hidden justify-end gap-3 px-12 pt-6 pb-2 text-xl font-bold uppercase md:flex xl:absolute xl:inset-x-12 xl:bottom-[26px] xl:p-0">
         <PadPrompt pad="a" to="/" hash="dogadaji">Odaberi</PadPrompt>
         <PadPrompt pad="b" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>Natrag</PadPrompt>
         <PadPrompt pad="x" to="/" hash="karta">Karta</PadPrompt>

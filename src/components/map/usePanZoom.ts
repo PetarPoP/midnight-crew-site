@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
 
 export type View = { s: number; x: number; y: number }
 type Box = readonly [number, number, number, number]
@@ -7,23 +7,44 @@ export type Pad = readonly [number, number, number, number]
 
 // Leaves space for the overlays (filters on top, zoom on the right, prompts below).
 const DEFAULT_PAD: Pad = [120, 150, 130, 80]
+const SMALL_PAD: Pad = [40, 40, 40, 40]
 
 const MAX_S = 2.6
+/** How quickly wheel/button zoom catches up with its target (ms, smaller = snappier). */
+const EASE_MS = 90
+/** How long a flung map keeps gliding (ms decay constant). */
+const GLIDE_MS = 320
+const FLY_MS = 850
+
+const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2)
 
 /**
  * Drag / wheel / pinch pan-zoom for a world of size W×H shown in a viewport
  * element. Mouse and pen drag with one pointer; on touch screens narrower than
  * md a single finger scrolls the page and two fingers move the map.
+ *
+ * Motion runs in one requestAnimationFrame loop that writes the transform
+ * straight onto the world element, so dragging and zooming never re-render
+ * React. `view` (for the scale bar) is only refreshed a few times a second.
  */
 export function usePanZoom(W: number, H: number, initial: Box) {
   const ref = useRef<HTMLDivElement>(null)
+  const worldRef = useRef<HTMLDivElement>(null)
   const size = useRef({ w: 860, h: 640 })
-  const [view, setView] = useState<View>(() => fit(initial, 860, 640, W, H, DEFAULT_PAD))
-  const viewRef = useRef(view)
-  const [animating, setAnimating] = useState(false)
+  const [first] = useState<View>(() => fit(initial, 860, 640, W, H, DEFAULT_PAD))
+  const [view, setView] = useState<View>(first)
   const [moving, setMoving] = useState(false)
   const dragged = useRef(false)
-  const animTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
+
+  const cur = useRef<View>(first)
+  const target = useRef<View>(first)
+  const vel = useRef({ x: 0, y: 0 })
+  const fly = useRef<{ from: View; to: View; t0: number } | null>(null)
+  const raf = useRef(0)
+  const lastFrame = useRef(0)
+  const lastSync = useRef(0)
+  const holding = useRef(false)
+  const settleTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
 
   const minS = () => Math.max(size.current.w / W, size.current.h / H)
 
@@ -40,40 +61,131 @@ export function usePanZoom(W: number, H: number, initial: Box) {
     [W, H],
   )
 
-  const apply = useCallback(
-    (v: View, animate = false) => {
-      const next = clamp(v)
-      viewRef.current = next
-      setView(next)
-      if (animate) {
-        setAnimating(true)
-        clearTimeout(animTimer.current)
-        animTimer.current = setTimeout(() => setAnimating(false), 750)
+  const write = (v: View) => {
+    const el = worldRef.current
+    if (!el) return
+    el.style.transform = `translate3d(${v.x}px, ${v.y}px, 0) scale(${v.s})`
+    el.style.setProperty('--s', String(v.s))
+  }
+
+  const tick = useCallback(
+    (now: number) => {
+      const dt = Math.min(64, now - (lastFrame.current || now - 16))
+      lastFrame.current = now
+      const c = cur.current
+      let t = target.current
+
+      if (fly.current) {
+        const { from, to, t0 } = fly.current
+        const p = Math.min(1, (now - t0) / FLY_MS)
+        const e = easeInOut(p)
+        // Interpolate scale in log space so zooming feels even.
+        const s = from.s * (to.s / from.s) ** e
+        const k = (s - from.s) / (to.s - from.s || 1)
+        const lin = to.s === from.s ? e : k
+        cur.current = { s, x: from.x + (to.x - from.x) * lin, y: from.y + (to.y - from.y) * lin }
+        target.current = cur.current
+        if (p >= 1) {
+          fly.current = null
+          cur.current = target.current = to
+        }
+      } else {
+        // Glide after a fling.
+        const v = vel.current
+        if (!holding.current && (Math.abs(v.x) > 0.01 || Math.abs(v.y) > 0.01)) {
+          const next = clamp({ ...t, x: t.x + v.x * dt, y: t.y + v.y * dt })
+          if (next.x !== t.x + v.x * dt) v.x = 0
+          if (next.y !== t.y + v.y * dt) v.y = 0
+          const decay = Math.exp(-dt / GLIDE_MS)
+          v.x *= decay
+          v.y *= decay
+          t = target.current = next
+        }
+        const a = 1 - Math.exp(-dt / EASE_MS)
+        cur.current = {
+          s: c.s + (t.s - c.s) * a,
+          x: c.x + (t.x - c.x) * a,
+          y: c.y + (t.y - c.y) * a,
+        }
+      }
+
+      const n = cur.current
+      const done =
+        !fly.current &&
+        Math.abs(vel.current.x) <= 0.01 &&
+        Math.abs(vel.current.y) <= 0.01 &&
+        Math.abs(n.s - t.s) < 0.0005 &&
+        Math.abs(n.x - t.x) < 0.3 &&
+        Math.abs(n.y - t.y) < 0.3
+      if (done) cur.current = t
+      write(cur.current)
+
+      if (done || now - lastSync.current > 120) {
+        lastSync.current = now
+        setView(cur.current)
+      }
+      if (done) {
+        raf.current = 0
+        lastFrame.current = 0
+        // Let the browser re-rasterise the map sharply once it has settled.
+        clearTimeout(settleTimer.current)
+        settleTimer.current = setTimeout(() => {
+          if (!raf.current && worldRef.current) worldRef.current.style.willChange = 'auto'
+        }, 180)
+      } else {
+        raf.current = requestAnimationFrame(tick)
       }
     },
     [clamp],
   )
 
+  const kick = useCallback(() => {
+    clearTimeout(settleTimer.current)
+    if (worldRef.current) worldRef.current.style.willChange = 'transform'
+    if (!raf.current) raf.current = requestAnimationFrame(tick)
+  }, [tick])
+
+  /** Move the target; `jump` skips easing (used while a finger is down). */
+  const aim = useCallback(
+    (v: View, jump = false) => {
+      fly.current = null
+      target.current = clamp(v)
+      if (jump) cur.current = target.current
+      kick()
+    },
+    [clamp, kick],
+  )
+
   const zoomAt = useCallback(
-    (factor: number, cx: number, cy: number, animate = false) => {
-      const v = viewRef.current
+    (factor: number, cx: number, cy: number) => {
+      const v = target.current
       const s = Math.min(MAX_S, Math.max(minS(), v.s * factor))
       const k = s / v.s
-      apply({ s, x: cx - (cx - v.x) * k, y: cy - (cy - v.y) * k }, animate)
+      vel.current = { x: 0, y: 0 }
+      aim({ s, x: cx - (cx - v.x) * k, y: cy - (cy - v.y) * k })
     },
-    [apply],
+    [aim],
   )
 
   const flyTo = useCallback(
     (box: Box, pad: Pad = DEFAULT_PAD) => {
-      apply(fit(box, size.current.w, size.current.h, W, H, size.current.w < 640 ? SMALL_PAD : pad), true)
+      const { w, h } = size.current
+      vel.current = { x: 0, y: 0 }
+      fly.current = { from: cur.current, to: clamp(fit(box, w, h, W, H, w < 640 ? SMALL_PAD : pad)), t0: performance.now() }
+      kick()
     },
-    [apply, W, H],
+    [clamp, kick, W, H],
   )
 
-  const zoomBy = useCallback(
-    (factor: number) => zoomAt(factor, size.current.w / 2, size.current.h / 2, true),
-    [zoomAt],
+  const zoomBy = useCallback((factor: number) => zoomAt(factor, size.current.w / 2, size.current.h / 2), [zoomAt])
+
+  const pan = useCallback(
+    (dx: number, dy: number) => {
+      const v = target.current
+      vel.current = { x: 0, y: 0 }
+      aim({ ...v, x: v.x + dx, y: v.y + dy })
+    },
+    [aim],
   )
 
   // Track viewport size.
@@ -82,10 +194,15 @@ export function usePanZoom(W: number, H: number, initial: Box) {
     if (!el) return
     const ro = new ResizeObserver(() => {
       size.current = { w: el.clientWidth, h: el.clientHeight }
-      apply(fit(initial, el.clientWidth, el.clientHeight, W, H, small(el) ? SMALL_PAD : DEFAULT_PAD))
+      aim(fit(initial, el.clientWidth, el.clientHeight, W, H, el.clientWidth < 640 ? SMALL_PAD : DEFAULT_PAD), true)
     })
     ro.observe(el)
-    return () => ro.disconnect()
+    return () => {
+      ro.disconnect()
+      cancelAnimationFrame(raf.current)
+      raf.current = 0
+      clearTimeout(settleTimer.current)
+    }
   }, [])
 
   // Pointer + wheel handling.
@@ -93,7 +210,7 @@ export function usePanZoom(W: number, H: number, initial: Box) {
     const el = ref.current
     if (!el) return
     const pts = new Map<number, { x: number; y: number }>()
-    let last: { x: number; y: number; d: number } | null = null
+    let last: { x: number; y: number; d: number; t: number } | null = null
     let startPt = { x: 0, y: 0 }
     const twoFingerOnly = () => !matchMedia('(min-width: 768px)').matches
 
@@ -106,7 +223,7 @@ export function usePanZoom(W: number, H: number, initial: Box) {
       const x = a.reduce((s, p) => s + p.x, 0) / a.length
       const y = a.reduce((s, p) => s + p.y, 0) / a.length
       const d = a.length > 1 ? Math.hypot(a[0].x - a[1].x, a[0].y - a[1].y) : 0
-      return { x, y, d }
+      return { x, y, d, t: performance.now() }
     }
 
     const down = (e: PointerEvent) => {
@@ -117,6 +234,10 @@ export function usePanZoom(W: number, H: number, initial: Box) {
       last = centroid()
       startPt = { x: last.x, y: last.y }
       dragged.current = false
+      // Catch the map mid-glide.
+      vel.current = { x: 0, y: 0 }
+      fly.current = null
+      target.current = cur.current
     }
     const move = (e: PointerEvent) => {
       if (!pts.has(e.pointerId)) return
@@ -130,30 +251,59 @@ export function usePanZoom(W: number, H: number, initial: Box) {
       if (!dragged.current && Math.hypot(c.x - startPt.x, c.y - startPt.y) < 5 && pts.size < 2) return
       if (!dragged.current) {
         dragged.current = true
+        holding.current = true
         setMoving(true)
         try {
           el.setPointerCapture(e.pointerId)
         } catch {}
       }
-      const v = viewRef.current
-      let next: View = { s: v.s, x: v.x + c.x - last.x, y: v.y + c.y - last.y }
+      const v = target.current
+      const dx = c.x - last.x
+      const dy = c.y - last.y
+      let next: View = { s: v.s, x: v.x + dx, y: v.y + dy }
       if (pts.size > 1 && last.d > 0 && c.d > 0) {
         const s = Math.min(MAX_S, Math.max(minS(), v.s * (c.d / last.d)))
         const k = s / v.s
         next = { s, x: c.x - (c.x - next.x) * k, y: c.y - (c.y - next.y) * k }
       }
-      apply(next)
+      // Smoothed release velocity in px/ms.
+      const dt = Math.max(1, c.t - last.t)
+      vel.current = {
+        x: vel.current.x * 0.6 + (dx / dt) * 0.4,
+        y: vel.current.y * 0.6 + (dy / dt) * 0.4,
+      }
+      target.current = clamp(next)
+      cur.current = target.current
+      kick()
       last = c
     }
     const up = (e: PointerEvent) => {
-      pts.delete(e.pointerId)
+      if (!pts.delete(e.pointerId)) return
       last = pts.size ? centroid() : null
-      if (!pts.size) setMoving(false)
+      if (!pts.size) {
+        holding.current = false
+        setMoving(false)
+        // A pause before letting go means no fling.
+        if (!dragged.current || performance.now() - (lastMove.t || 0) > 80) vel.current = { x: 0, y: 0 }
+        const v = vel.current
+        const speed = Math.hypot(v.x, v.y)
+        if (speed > 2.5) {
+          v.x *= 2.5 / speed
+          v.y *= 2.5 / speed
+        }
+        kick()
+      }
+    }
+    const lastMove = { t: 0 }
+    const moveStamp = (e: PointerEvent) => {
+      if (pts.has(e.pointerId)) lastMove.t = performance.now()
     }
     const wheel = (e: WheelEvent) => {
       e.preventDefault()
       const p = local(e)
-      zoomAt(Math.exp(-e.deltaY * (e.ctrlKey ? 0.01 : 0.0018)), p.x, p.y)
+      // Pixel-mode trackpads send many small deltas, mouse wheels a few big ones.
+      const dy = e.deltaMode === 1 ? e.deltaY * 33 : e.deltaY
+      zoomAt(Math.exp(-dy * (e.ctrlKey ? 0.01 : 0.0022)), p.x, p.y)
     }
     // A drag must not also count as a click on a pin.
     const click = (e: MouseEvent) => {
@@ -166,7 +316,7 @@ export function usePanZoom(W: number, H: number, initial: Box) {
     const dbl = (e: MouseEvent) => {
       if ((e.target as HTMLElement).closest('[data-map-ui], button')) return
       const p = local(e)
-      zoomAt(1.8, p.x, p.y, true)
+      zoomAt(1.8, p.x, p.y)
     }
 
     // Focus or scrollIntoView can scroll an overflow:hidden box; keep it pinned.
@@ -180,6 +330,7 @@ export function usePanZoom(W: number, H: number, initial: Box) {
     el.addEventListener('scroll', noScroll)
     el.addEventListener('pointerdown', down)
     window.addEventListener('pointermove', move)
+    window.addEventListener('pointermove', moveStamp)
     window.addEventListener('pointerup', up)
     window.addEventListener('pointercancel', up)
     el.addEventListener('wheel', wheel, { passive: false })
@@ -189,27 +340,27 @@ export function usePanZoom(W: number, H: number, initial: Box) {
       el.removeEventListener('scroll', noScroll)
       el.removeEventListener('pointerdown', down)
       window.removeEventListener('pointermove', move)
+      window.removeEventListener('pointermove', moveStamp)
       window.removeEventListener('pointerup', up)
       window.removeEventListener('pointercancel', up)
       el.removeEventListener('wheel', wheel)
       el.removeEventListener('click', click, true)
       el.removeEventListener('dblclick', dbl)
     }
-  }, [apply, zoomAt])
+  }, [clamp, kick, zoomAt])
 
-  const pan = useCallback(
-    (dx: number, dy: number) => {
-      const v = viewRef.current
-      apply({ ...v, x: v.x + dx, y: v.y + dy }, true)
-    },
-    [apply],
+  /** Style for the world element: only the first frame comes from React. */
+  const [worldStyle] = useState(
+    () =>
+      ({
+        transform: `translate3d(${first.x}px, ${first.y}px, 0) scale(${first.s})`,
+        transformOrigin: '0 0',
+        '--s': first.s,
+      }) as CSSProperties,
   )
 
-  return { ref, view, animating, moving, flyTo, zoomBy, pan }
+  return { ref, worldRef, worldStyle, view, moving, flyTo, zoomBy, pan }
 }
-
-const SMALL_PAD: Pad = [40, 40, 40, 40]
-const small = (el: HTMLElement) => el.clientWidth < 640
 
 /** View that fits a world-space box into a w×h viewport with padding. */
 function fit(box: Box, w: number, h: number, W: number, H: number, pad: Pad): View {

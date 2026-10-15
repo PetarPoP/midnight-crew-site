@@ -1,8 +1,8 @@
 import { memo } from 'react'
 import { MAP, project } from '~/lib/mapData'
 
-// Stroke widths stay the same on screen at any zoom (--s is the zoom level).
-const px = (n: number) => ({ strokeWidth: `calc(${n}px / var(--s))` })
+// Plain world-space stroke widths and no SVG filters: the basemap is painted
+// once and then only moved by the compositor, which keeps pan/zoom smooth.
 
 const GREEN = [
   [16.45, 43.85, 140, 50, -40], // Dinara
@@ -36,16 +36,11 @@ export const BaseMap = memo(function BaseMap() {
         <pattern id="mcWave" width="36" height="24" patternUnits="userSpaceOnUse">
           <path d="M0,12 Q9,3 18,12 T36,12" fill="none" stroke="#fff" strokeOpacity=".22" strokeWidth="2" />
         </pattern>
-        <filter id="mcShallow" x="-5%" y="-5%" width="110%" height="110%">
-          <feGaussianBlur stdDeviation="9" />
-        </filter>
-        <filter id="mcSoft" x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur stdDeviation="28" />
-        </filter>
-        <filter id="mcTerrain" x="0" y="0" width="100%" height="100%">
-          <feTurbulence type="fractalNoise" baseFrequency=".01" numOctaves="4" seed="7" result="n" />
-          <feColorMatrix in="n" type="matrix" values="0 0 0 0 .45  0 0 0 0 .55  0 0 0 0 .3  0 0 0 1.6 -.55" />
-        </filter>
+        <radialGradient id="mcGreen">
+          <stop offset="0" stopColor="#aebf86" stopOpacity=".75" />
+          <stop offset=".55" stopColor="#aebf86" stopOpacity=".45" />
+          <stop offset="1" stopColor="#aebf86" stopOpacity="0" />
+        </radialGradient>
         <clipPath id="mcLand">
           <path d={MAP.land} />
         </clipPath>
@@ -55,25 +50,28 @@ export const BaseMap = memo(function BaseMap() {
       <rect width={W} height={H} fill="url(#mcSea)" />
       <rect width={W} height={H} fill="url(#mcWave)" />
 
-      {/* Shallow water glow along the coast, then land */}
-      <path d={MAP.land} fill="#bfeaf7" stroke="#bfeaf7" strokeWidth="36" filter="url(#mcShallow)" opacity=".75" />
+      {/* Shallow water along the coast, then land */}
+      <g fill="none" stroke="#bfeaf7" strokeLinejoin="round">
+        <path d={MAP.land} strokeWidth="44" strokeOpacity=".22" />
+        <path d={MAP.land} strokeWidth="26" strokeOpacity=".3" />
+        <path d={MAP.land} strokeWidth="12" strokeOpacity=".45" />
+      </g>
       <path d={MAP.land} fill="#efe6c6" stroke="#b9ab84" strokeWidth="2" strokeLinejoin="round" />
       <g clipPath="url(#mcLand)">
-        <rect width={W} height={H} filter="url(#mcTerrain)" opacity=".55" />
-        <g filter="url(#mcSoft)" opacity=".7">
-          {GREEN.map(([lon, lat, rx, ry, rot]) => {
-            const [x, y] = project(lon, lat)
-            return <ellipse key={lon} cx={x} cy={y} rx={rx} ry={ry} transform={`rotate(${rot} ${x} ${y})`} fill="#aebf86" />
-          })}
-        </g>
+        {GREEN.map(([lon, lat, rx, ry, rot]) => {
+          const [x, y] = project(lon, lat)
+          return (
+            <ellipse key={lon} cx={x} cy={y} rx={rx * 1.6} ry={ry * 1.8} transform={`rotate(${rot} ${x} ${y})`} fill="url(#mcGreen)" />
+          )
+        })}
       </g>
 
       {/* Water on land */}
-      <path d={MAP.rivers} fill="none" stroke="#7cc4e4" strokeLinecap="round" strokeLinejoin="round" style={px(1.6)} />
-      <path d={MAP.lakes} fill="#7cc4e4" stroke="#fff" strokeOpacity=".7" style={px(1)} />
+      <path d={MAP.rivers} fill="none" stroke="#7cc4e4" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+      <path d={MAP.lakes} fill="#7cc4e4" stroke="#fff" strokeOpacity=".7" strokeWidth="1.2" />
 
       {/* Grid */}
-      <g stroke="#fff" strokeOpacity=".28" style={px(1)}>
+      <g stroke="#fff" strokeOpacity=".28" strokeWidth="1.2">
         {MAP.gridX.map((x) => (
           <line key={x} x1={x} y1={0} x2={x} y2={H} />
         ))}
@@ -102,14 +100,14 @@ export const BaseMap = memo(function BaseMap() {
       </g>
 
       {/* Borders */}
-      <path d={MAP.borders} fill="none" stroke="#8d7f63" strokeOpacity=".8" strokeDasharray="10 7" style={px(1.6)} />
+      <path d={MAP.borders} fill="none" stroke="#8d7f63" strokeOpacity=".8" strokeDasharray="10 7" strokeWidth="2" />
 
       {/* Roads: casing, then fill */}
       <g fill="none" strokeLinecap="round" strokeLinejoin="round">
-        <path d={MAP.roads} stroke="#8d7f63" strokeOpacity=".75" style={px(3.4)} />
-        <path d={MAP.motorways} stroke="#9a6a1a" style={px(5)} />
-        <path d={MAP.roads} stroke="#fffaf0" style={px(2)} />
-        <path d={MAP.motorways} stroke="#ffc83a" style={px(3)} />
+        <path d={MAP.roads} stroke="#8d7f63" strokeOpacity=".75" strokeWidth="4" />
+        <path d={MAP.motorways} stroke="#9a6a1a" strokeWidth="6" />
+        <path d={MAP.roads} stroke="#fffaf0" strokeWidth="2.4" />
+        <path d={MAP.motorways} stroke="#ffc83a" strokeWidth="3.6" />
       </g>
 
       {/* Region labels */}

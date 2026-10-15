@@ -37,6 +37,12 @@
 }
 
 /* ---------- Map route ---------- */
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
 @keyframes route-dash {
   to {
     stroke-dashoffset: -4;
@@ -227,11 +233,43 @@
     pad-press 0.3s ease-out,
     pad-ring 0.5s ease-out;
 }
-.pad-prompt:hover .pad-glyph {
-  scale: 1.12;
-}
 .pad-glyph {
-  transition: scale 0.15s;
+  transition:
+    translate 0.18s cubic-bezier(0.3, 1.6, 0.5, 1),
+    box-shadow 0.18s;
+}
+
+/* Controller prompt hover: a dim skewed plate fades in behind it and the
+   glyph lifts with a soft ring, like a highlighted prompt in a game HUD. */
+@layer components {
+  .pad-prompt {
+    position: relative;
+    isolation: isolate;
+    padding: 6px 14px 6px 6px;
+    text-decoration: none;
+  }
+  .pad-prompt::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: rgba(255, 255, 255, 0.12);
+    transform: skewX(-14deg);
+    opacity: 0;
+    transition: opacity 0.18s;
+  }
+  .pad-prompt:hover::before,
+  .pad-prompt:focus-visible::before {
+    opacity: 1;
+  }
+  .pad-prompt:focus-visible {
+    outline: none;
+  }
+  .pad-prompt:hover .pad-glyph,
+  .pad-prompt:focus-visible .pad-glyph {
+    translate: 0 -2px;
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.28);
+  }
 }
 
 /* Toast */
