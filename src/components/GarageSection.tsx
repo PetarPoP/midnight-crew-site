@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
-import { GARAGE, INSTAGRAM_URL, crewLevel, type Car } from '~/lib/data'
+import { createPortal } from 'react-dom'
+import { JoinModal } from './JoinModal'
+import { GARAGE, crewLevel, type Car } from '~/lib/data'
 import { isTyping } from '~/lib/useGameKeys'
 import { KeyHint, PadPrompt, SectionHead } from './ui'
 
@@ -8,6 +10,7 @@ const DRIVE = { rwd: 'Zadnji', fwd: 'Prednji', awd: '4×4' } as const
 /** Car-select screen in the style of a racing game's garage. */
 export function GarageSection() {
   const [i, setI] = useState(0)
+  const [join, setJoin] = useState(false)
   const [dir, setDir] = useState(1)
   const ref = useRef<HTMLElement>(null)
   const n = GARAGE.length
@@ -159,22 +162,22 @@ export function GarageSection() {
               </li>
             ))}
             <li className="shrink-0">
-              <a
-                href={INSTAGRAM_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex h-[84px] w-[132px] -skew-x-6 items-center justify-center border-2 border-dashed border-white/25 text-center text-sm font-extrabold tracking-wide text-muted uppercase italic transition-colors hover:border-white hover:text-white"
+              <button
+                type="button"
+                onClick={() => setJoin(true)}
+                className="flex cursor-pointer h-[84px] w-[132px] -skew-x-6 items-center justify-center border-2 border-dashed border-white/25 text-center text-sm font-extrabold tracking-wide text-muted uppercase italic transition-colors hover:border-white hover:text-white"
               >
                 <span className="skew-x-6">
                   Tvoj auto?
                   <br />
                   Javi se
                 </span>
-              </a>
+              </button>
             </li>
           </ul>
         </div>
       )}
+      {join && createPortal(<JoinModal onClose={() => setJoin(false)} />, document.body)}
     </section>
   )
 }

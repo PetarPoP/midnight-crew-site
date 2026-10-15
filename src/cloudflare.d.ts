@@ -25,5 +25,9 @@ declare module 'cloudflare:workers' {
     /** Telegram bot token (from @BotFather) and the chat id that gets order messages. */
     TELEGRAM_BOT_TOKEN?: string
     TELEGRAM_CHAT_ID?: string
+    /** Resend (resend.com) API key, the mail that receives garage requests, and an optional sender. */
+    RESEND_API_KEY?: string
+    MAIL_TO?: string
+    MAIL_FROM?: string
   }
 }
