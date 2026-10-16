@@ -71,13 +71,11 @@ export function Map3DCard({ event: e }: { event: CrewEvent }) {
     }
 
     const start = async () => {
-      const [mod, worker] = await Promise.all([
-        import('maplibre-gl'),
-        import('maplibre-gl/dist/maplibre-gl-worker.mjs?url'),
-        import('maplibre-gl/dist/maplibre-gl.css'),
-      ])
+      // Browser only: keeps MapLibre out of the server bundle.
+      if (import.meta.env.SSR) return
+      const [mod] = await Promise.all([import('maplibre-gl'), import('maplibre-gl/dist/maplibre-gl.css')])
       const maplibregl = ((mod as unknown as { default?: typeof mod }).default ?? mod) as typeof mod
-      maplibregl.setWorkerUrl(worker.default)
+      maplibregl.setWorkerUrl('/vendor/maplibre-gl-worker.mjs')
       if (cancelled) return
       const dest = destination(e.place)
       const line = dest ? routeLonLat(dest.name, dest.lon, dest.lat) : [[LIVNO.lon, LIVNO.lat] as [number, number]]
