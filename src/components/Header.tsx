@@ -89,7 +89,8 @@ export function Header({ overlay = false }: { overlay?: boolean }) {
               compact ? 'size-10 text-lg' : 'size-[54px] text-2xl'
             }`}
           >
-            MC
+            {/* Italic caps sit low in the circle; nudge them up so they look centred */}
+            <span className="-translate-y-[2px] pr-[2px]">MC</span>
           </div>
           <div>
             <div
@@ -118,7 +119,7 @@ export function Header({ overlay = false }: { overlay?: boolean }) {
           className="order-3 flex w-full items-center gap-1.5 overflow-x-auto text-lg font-extrabold uppercase italic md:order-none md:w-auto md:text-xl"
         >
           <span className="hidden sm:contents">
-            <span data-key-hint="q" className="contents" onClick={() => select(tab - 1)}>
+            <span data-key-hint="q" className="mr-4 flex" onClick={() => select(tab - 1)}>
               <KeyHint label="Prethodna kartica">Q</KeyHint>
             </span>
           </span>
@@ -137,7 +138,7 @@ export function Header({ overlay = false }: { overlay?: boolean }) {
             </a>
           ))}
           <span className="hidden sm:contents">
-            <span data-key-hint="e" className="contents" onClick={() => select(tab + 1)}>
+            <span data-key-hint="e" className="ml-4 flex" onClick={() => select(tab + 1)}>
               <KeyHint label="Sljedeća kartica">E</KeyHint>
             </span>
           </span>

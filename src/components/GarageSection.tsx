@@ -127,7 +127,7 @@ export function GarageSection() {
 
               {/* Stats + actions */}
               <div className="relative grid gap-6 px-5 pb-5 md:grid-cols-[minmax(0,420px)_1fr] md:items-end md:px-8 md:pb-7">
-                <div key={car.id} className="grid animate-swap-in gap-2.5 -skew-x-6 bg-ink/70 px-5 py-4 shadow-[inset_4px_0_0_var(--color-pink)]">
+                <div key={car.id} className="grid animate-swap-in gap-2.5 -skew-x-6 bg-ink/70 px-5 py-4">
                   <div className="grid skew-x-6 gap-2.5">
                     <Stat label="Snaga" value={`${car.hp} KS`} ratio={car.hp / 600} />
                     <Stat label="Moment" value={`${car.torque} Nm`} ratio={car.torque / 700} />

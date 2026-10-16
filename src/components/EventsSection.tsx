@@ -3,7 +3,7 @@ import { Link } from '@tanstack/react-router'
 import { useEffect, type CSSProperties } from 'react'
 import { KIND_COLOR, upcomingEvents } from '~/lib/data'
 import { loadRsvps, useRsvp } from '~/lib/rsvp'
-import { SectionHead } from './ui'
+import { Place, SectionHead } from './ui'
 
 export function EventsSection() {
   const events = upcomingEvents()
@@ -29,12 +29,11 @@ export function EventsSection() {
               to="."
               search={(s) => ({ ...s, e: e.id })}
               resetScroll={false}
-              className="fh-hover group block h-full -skew-x-6 border-t-[6px] bg-panel transition-colors hover:bg-[#2b2339]"
-              style={{ borderTopColor: KIND_COLOR[e.k] }}
+              className="fh-hover group block h-full -skew-x-6 bg-panel transition-colors hover:bg-[#2b2339]"
             >
               <div className="flex min-h-[220px] skew-x-6 flex-col gap-3 px-[22px] py-5">
                 <div className="flex justify-between text-base font-bold text-muted">
-                  <span>{e.tag}</span>
+                  <span style={{ color: KIND_COLOR[e.k] }}>{e.tag}</span>
                   <time dateTime={e.iso}>
                     {e.weekday} {e.date}
                   </time>
@@ -42,7 +41,7 @@ export function EventsSection() {
                 <h3 className="flex-1 text-[32px] leading-[.92] font-extrabold uppercase italic">{e.title}</h3>
                 <div className="flex items-end justify-between gap-3 text-lg font-semibold">
                   <span>
-                    {e.place} · {e.time}
+                    <Place name={e.place} /> · {e.time}
                     <Going id={e.id} />
                   </span>
                   <span

@@ -84,7 +84,7 @@ function ProductPage() {
               </li>
             ))}
           </ul>
-          <div className="border-l-[6px] border-pink bg-panel px-5 py-5">
+          <div className="bg-panel px-5 py-5">
             <BuyBox product={p} padKey />
           </div>
           <Link

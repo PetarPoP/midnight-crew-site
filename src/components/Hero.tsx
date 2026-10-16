@@ -3,7 +3,8 @@ import { useEffect, useRef, type CSSProperties, type ReactNode } from 'react'
 import { INSTAGRAM_URL, PRODUCTS, SETTINGS, TOTAL_KM, formatKm, upcomingEvents } from '~/lib/data'
 import { useCountdown } from '~/lib/useCountdown'
 import { Header } from './Header'
-import { Credit, PadPrompt } from './ui'
+import { Map3DCard } from './Map3DCard'
+import { Credit, PadPrompt, Place } from './ui'
 
 /**
  * Grid cell for a slanted tile. The outer element handles the grid span and
@@ -108,7 +109,7 @@ export function Hero() {
             to="."
             search={(s) => ({ ...s, e: next.id })}
             resetScroll={false}
-            className={`${TILE} bg-pink shadow-[0_0_0_4px_#fff]`}
+            className={`${TILE} bg-pink shadow-[inset_0_0_0_4px_#fff]`}
           >
             <div className={`${TILE_INNER} flex flex-col justify-between px-8 py-[26px] md:px-[34px]`}>
               <div>
@@ -129,7 +130,7 @@ export function Hero() {
                   <Digits value={`${cd.d}:${cd.h}:${cd.m}:${cd.s}`} />
                 </div>
                 <div className="mt-2 truncate text-lg font-bold tracking-[.06em] uppercase">
-                  {next.weekday} {next.date} · {next.time} · {next.place}
+                  {next.weekday} {next.date} · {next.time} · <Place name={next.place} />
                 </div>
               </div>
             </div>
@@ -204,23 +205,9 @@ export function Hero() {
       </div>
 
       {/* Unlocked event */}
-      <div className="hero-fade relative z-[1] mx-5 mt-6 md:mx-(--gutter) xl:absolute xl:top-(--top) xl:right-(--gutter) xl:m-0 xl:w-[260px]">
+      <div className="hero-fade relative z-[1] mx-5 mt-6 md:mx-(--gutter) xl:absolute xl:top-(--top) xl:right-(--gutter) xl:m-0 xl:w-[320px]">
         <div data-reveal="right" style={{ '--i': 3 } as CSSProperties}>
-          <Link
-            to="."
-            search={(s) => ({ ...s, e: featured.id })}
-            resetScroll={false}
-            className="fh-hover block border-l-[6px] border-lime bg-ink/85 px-[22px] py-[18px]"
-          >
-            <div className="text-[15px] font-bold tracking-[.12em] text-lime">
-              NOVO · OTKLJUČANO
-              <span className="ml-2 inline-block size-2 animate-pulse rounded-full bg-lime align-middle" />
-            </div>
-            <div className="mt-1.5 text-[30px] leading-none font-extrabold uppercase italic">{featured.title}</div>
-            <div className="mt-1.5 text-lg text-soft">
-              {featured.date} · {featured.time} · {featured.place}
-            </div>
-          </Link>
+          <Map3DCard event={featured} />
         </div>
       </div>
 

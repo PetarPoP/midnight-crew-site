@@ -1,3 +1,4 @@
+import { Place } from './ui'
 import { ArrowRight, ArrowUp, Diamond } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
 import type { ReactNode } from 'react'
@@ -73,7 +74,6 @@ export function Footer() {
                   hash={n.hash}
                   className="group flex items-center gap-2 py-1 text-2xl font-bold text-soft uppercase italic no-underline transition-colors hover:text-white"
                 >
-                  <span className="h-[3px] w-0 bg-lime transition-[width] duration-200 group-hover:w-5" />
                   {n.label}
                 </Link>
               </li>
@@ -88,7 +88,7 @@ export function Footer() {
             to="."
             search={(s) => ({ ...s, e: next.id })}
             resetScroll={false}
-            className="group relative block overflow-hidden bg-panel p-5 no-underline shadow-[inset_4px_0_0_var(--color-lime)] transition-transform duration-200 hover:-translate-y-1"
+            className="group relative block overflow-hidden bg-panel p-5 no-underline transition-transform duration-200 hover:-translate-y-1"
           >
             <div className="flex items-baseline justify-between gap-3">
               <span className="text-5xl leading-none font-extrabold text-lime italic">{next.date}</span>
@@ -96,7 +96,9 @@ export function Footer() {
             </div>
             <div className="mt-3 text-2xl leading-tight font-extrabold text-white uppercase italic">{next.title}</div>
             <div className="mt-1 flex items-center justify-between text-base font-semibold text-muted">
-              <span>{next.place}</span>
+              <span>
+                <Place name={next.place} />
+              </span>
               <span className="text-lime transition-transform duration-200 group-hover:translate-x-1"><ArrowRight size={22} strokeWidth={3} aria-hidden="true" /></span>
             </div>
           </Link>
@@ -160,7 +162,6 @@ export function Footer() {
 function ColTitle({ children }: { children: ReactNode }) {
   return (
     <h3 className="mb-4 flex items-center gap-3 font-mono text-sm tracking-[.2em] text-muted uppercase">
-      <span className="h-3 w-1.5 -skew-x-12 bg-pink" />
       {children}
     </h3>
   )

@@ -185,7 +185,7 @@ export function MapSection() {
               <div className="hex relative flex h-[68px] w-[60px] items-center justify-center bg-white">
                 <div className="hex flex h-[60px] w-[52px] items-center justify-center bg-lime text-[26px] font-extrabold text-ink italic">MC</div>
               </div>
-              <div className="absolute -top-11 left-1/2 -translate-x-1/2 -skew-x-12 border-l-4 border-lime bg-ink px-3 py-[3px] text-[17px] font-extrabold tracking-[.04em] whitespace-nowrap uppercase italic">
+              <div className="absolute -top-11 left-1/2 -translate-x-1/2 -skew-x-12 bg-ink px-3 py-[3px] text-[17px] font-extrabold tracking-[.04em] whitespace-nowrap uppercase italic">
                 Livno · Festival
               </div>
             </div>
@@ -232,7 +232,9 @@ export function MapSection() {
 
           {/* Filter tabs */}
           <div data-map-ui className="absolute top-5 left-[22px] z-30 hidden items-center gap-2 text-xl font-extrabold uppercase italic sm:flex">
-            <KeyHint label="Prethodni filter" onClick={() => cycleFilter(-1)}>Q</KeyHint>
+            <KeyHint label="Prethodni filter" onClick={() => cycleFilter(-1)} className="mr-3 bg-ink/70">
+              Q
+            </KeyHint>
             <span className="-skew-x-[14deg] bg-white px-[18px] py-2 text-ink">Karta</span>
             {FILTERS.map((f) => (
               <button
@@ -246,7 +248,9 @@ export function MapSection() {
                 {f.label}
               </button>
             ))}
-            <KeyHint label="Sljedeći filter" onClick={() => cycleFilter(1)}>E</KeyHint>
+            <KeyHint label="Sljedeći filter" onClick={() => cycleFilter(1)} className="ml-3 bg-ink/70">
+              E
+            </KeyHint>
           </div>
 
           {/* Compass + zoom */}
@@ -311,17 +315,17 @@ export function MapSection() {
 
         {/* Side panel */}
         <div className="flex min-w-0 flex-col gap-3 px-2 md:grid md:grid-cols-2 xl:flex xl:px-0">
-          <div data-reveal="right" className="relative h-[292px] -skew-x-6 overflow-hidden bg-pink shadow-[0_0_0_4px_#fff]" aria-live="polite">
+          <div data-reveal="right" className="relative h-[292px] overflow-hidden bg-pink shadow-[inset_0_0_0_4px_#fff]" aria-live="polite">
             {selected.photo && (
               <img
                 key={selected.photo}
                 src={selected.photo}
                 alt=""
                 loading="lazy"
-                className="absolute inset-y-0 right-0 w-[48%] skew-x-6 animate-[fade-in_.5s_ease-out] object-cover [mask-image:linear-gradient(90deg,transparent,#000_45%)]"
+                className="absolute inset-y-1 right-1 w-[48%] animate-[fade-in_.5s_ease-out] object-cover [mask-image:linear-gradient(90deg,transparent,#000_45%)]"
               />
             )}
-            <div className="absolute inset-0 flex skew-x-6 flex-col justify-between px-[26px] py-[22px]">
+            <div className="absolute inset-0 flex flex-col justify-between px-[26px] py-[22px]">
               <div>
                 <div className="flex items-center justify-between gap-3 text-base font-bold tracking-[.12em] uppercase">
                   <span>Odabrano odredište</span>
@@ -384,7 +388,7 @@ export function MapSection() {
                   onClick={() => setSel(r.name)}
                   aria-pressed={on}
                   className={`group grid cursor-pointer -skew-x-6 grid-cols-[118px_minmax(0,1fr)_62px] items-center gap-2.5 px-2 py-1 text-left transition-[background-color,translate] duration-200 hover:translate-x-1.5 focus-visible:outline-2 focus-visible:outline-white ${
-                    on ? 'bg-white/15 shadow-[inset_4px_0_0_var(--color-pink)]' : 'hover:bg-white/10'
+                    on ? 'bg-white/15' : 'hover:bg-white/10'
                   }`}
                 >
                   <span className={`text-[19px] font-extrabold uppercase italic transition-colors group-hover:text-white ${on ? 'text-white' : 'text-soft'}`}>

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { downloadIcs } from '~/lib/ics'
 import { loadRsvps, rsvpOpen, toggleRsvp, useRsvp } from '~/lib/rsvp'
 import { useCountdown } from '~/lib/useCountdown'
-import { PadPrompt } from '../ui'
+import { PadPrompt, Place } from '../ui'
 import { MENU_ITEM, Modal, MoreMenu, ShareButton } from './Modal'
 
 /** Event details in a centred dialog, opened from an event card or ?e=<id>. */
@@ -62,7 +62,7 @@ export function EventQuickView({ event: e, onClose }: { event: CrewEvent; onClos
         {/* When, where and how long until it starts, in one row */}
         <div className="flex flex-wrap items-stretch gap-2">
           <Fact label={e.weekday} value={`${e.date} · ${e.time}`} accent={accent} />
-          <Fact label="Mjesto" value={e.place} wide />
+          <Fact label="Mjesto" value={<Place name={e.place} />} wide />
           <Fact label={past ? 'U tijeku' : 'Krećemo za'} value={`${cd.d}d ${cd.h}:${cd.m}:${cd.s}`} mono />
         </div>
 
@@ -104,7 +104,7 @@ export function EventQuickView({ event: e, onClose }: { event: CrewEvent; onClos
   )
 }
 
-function Fact({ label, value, accent, wide = false, mono = false }: { label: string; value: string; accent?: string; wide?: boolean; mono?: boolean }) {
+function Fact({ label, value, accent, wide = false, mono = false }: { label: string; value: React.ReactNode; accent?: string; wide?: boolean; mono?: boolean }) {
   return (
     <div className={`-skew-x-6 bg-panel-2 px-3.5 py-2 ${wide ? 'min-w-0 flex-1 basis-40' : ''}`}>
       <div className="skew-x-6">

@@ -8,7 +8,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
  */
 export function Modal({
   label,
-  accent = 'var(--color-pink)',
+  accent: _accent,
   onClose,
   children,
   footer,
@@ -53,7 +53,6 @@ export function Modal({
       />
       <div
         className="modal-in relative flex max-h-[92dvh] w-full max-w-[820px] flex-col overflow-hidden bg-panel shadow-[0_0_0_4px_#fff,0_40px_80px_-20px_rgba(0,0,0,.9)] sm:max-h-[min(88vh,760px)]"
-        style={{ borderTop: `6px solid ${accent}` }}
       >
         <button
           ref={closeRef}

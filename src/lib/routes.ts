@@ -61,3 +61,9 @@ export function routeTo(name: string, lon: number, lat: number) {
     bbox: [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)] as const,
   }
 }
+
+/** Route from Livno to a place as [lon, lat] pairs (straight line if not cached). */
+export function routeLonLat(name: string, lon: number, lat: number): [number, number][] {
+  const hit = cache.routes.find((r) => r.name === name && Math.abs(r.lon - lon) < 1e-6 && Math.abs(r.lat - lat) < 1e-6)
+  return hit ? decode(hit.polyline) : [[ORIGIN.lon, ORIGIN.lat], [lon, lat]]
+}

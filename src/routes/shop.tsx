@@ -131,7 +131,7 @@ function CartPanel() {
       id="kosarica"
       aria-label="Košarica"
       data-reveal="right"
-      className="scroll-mt-6 border-l-[6px] border-lime bg-panel px-6 py-5"
+      className="scroll-mt-6 bg-panel px-6 py-5"
     >
       <div className="flex items-baseline justify-between">
         <h2 className="text-[40px] leading-none font-extrabold uppercase italic">Košarica</h2>

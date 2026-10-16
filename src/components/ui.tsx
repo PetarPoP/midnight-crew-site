@@ -1,4 +1,5 @@
 import { Link } from '@tanstack/react-router'
+import { ArrowRight } from 'lucide-react'
 import type { ComponentProps, ReactNode } from 'react'
 import { flashPressed } from '~/lib/useGameKeys'
 
@@ -75,7 +76,7 @@ export function PadPrompt(
 }
 
 /** Keyboard hint chip (Q / E). */
-export function KeyHint({ children, onClick, label }: { children: ReactNode; onClick?: () => void; label: string }) {
+export function KeyHint({ children, onClick, label, className = '' }: { children: ReactNode; onClick?: () => void; label: string; className?: string }) {
   return (
     <button
       type="button"
@@ -84,7 +85,7 @@ export function KeyHint({ children, onClick, label }: { children: ReactNode; onC
         onClick?.()
       }}
       aria-label={label}
-      className="flex h-7 w-[34px] shrink-0 cursor-pointer items-center justify-center rounded-md bg-white/20 text-sm font-bold not-italic transition hover:bg-white/35 data-[pressed]:scale-90"
+      className={`flex h-7 w-[34px] shrink-0 cursor-pointer items-center justify-center rounded-md bg-white/20 text-sm font-bold not-italic transition hover:bg-white/35 data-[pressed]:scale-90 ${className}`}
     >
       {children}
     </button>
@@ -116,5 +117,21 @@ export function SectionHead({ title, meta, id }: { title: string; meta: ReactNod
         {meta}
       </div>
     </div>
+  )
+}
+
+/** A place name from the CMS; "A → B" (or "A -> B") is shown with an arrow icon. */
+export function Place({ name }: { name: string }) {
+  const parts = name.split(/\s*(?:→|->)\s*/)
+  if (parts.length < 2) return <>{name}</>
+  return (
+    <>
+      {parts.map((p, i) => (
+        <span key={i}>
+          {i > 0 && <ArrowRight size="0.9em" strokeWidth={3} aria-label="do" className="mx-1 inline-block align-[-0.1em]" />}
+          {p}
+        </span>
+      ))}
+    </>
   )
 }
