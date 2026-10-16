@@ -6,10 +6,11 @@
 // line for that place until the next successful build.
 //
 // Usage: node scripts/fetch-routes.mjs
+import { fileURLToPath } from 'node:url'
 import { readFileSync, readdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 
-const ROOT = new URL('..', import.meta.url).pathname
+const ROOT = fileURLToPath(new URL('..', import.meta.url))
 const CACHE = join(ROOT, 'src/lib/routes.json')
 const PLACES = join(ROOT, 'src/content/places')
 const ORIGIN = { lon: 17.008, lat: 43.827 }

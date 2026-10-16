@@ -2,11 +2,12 @@
 // CMS uploads) at a few widths, so phones don't download the full-size file.
 // Output: public/images/_opt/... and src/lib/images.json (which widths exist
 // for which image), read by the <Picture> component.
+import { fileURLToPath } from 'node:url'
 import { existsSync, mkdirSync, readdirSync, statSync, writeFileSync } from 'node:fs'
 import { dirname, extname, join, relative } from 'node:path'
 import sharp from 'sharp'
 
-const ROOT = new URL('../public/images/', import.meta.url).pathname
+const ROOT = fileURLToPath(new URL('../public/images/', import.meta.url))
 const OUT = join(ROOT, '_opt')
 const WIDTHS = [480, 960, 1600, 2400]
 const FORMATS = { avif: { quality: 55 }, webp: { quality: 76 } }

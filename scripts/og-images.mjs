@@ -2,6 +2,7 @@
 // product, in the site's festival-menu style. WhatsApp, Instagram, Facebook,
 // Viber and Telegram show these when someone shares a link.
 // Output: public/og/*.jpg (the routes point og:image at them).
+import { fileURLToPath } from 'node:url'
 import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
 import { basename, join } from 'node:path'
 import { createRequire } from 'node:module'
@@ -10,7 +11,7 @@ import { Resvg } from '@resvg/resvg-js'
 import sharp from 'sharp'
 
 const require = createRequire(import.meta.url)
-const ROOT = new URL('../', import.meta.url).pathname
+const ROOT = fileURLToPath(new URL('../', import.meta.url))
 const OUT = join(ROOT, 'public/og')
 const W = 1200
 const H = 630
