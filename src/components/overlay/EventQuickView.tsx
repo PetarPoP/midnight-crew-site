@@ -5,7 +5,7 @@ import { downloadIcs } from '~/lib/ics'
 import { loadRsvps, rsvpOpen, toggleRsvp, useRsvp } from '~/lib/rsvp'
 import { useCountdown } from '~/lib/useCountdown'
 import { PadPrompt, Place } from '../ui'
-import { MENU_ITEM, Modal, MoreMenu, ShareButton } from './Modal'
+import { MENU_ITEM, Modal, MoreMenu, ShareButton, openOnDesktop } from './Modal'
 
 /** Event details in a centred dialog, opened from an event card or ?e=<id>. */
 export function EventQuickView({ event: e, onClose }: { event: CrewEvent; onClose: () => void }) {
@@ -87,7 +87,7 @@ export function EventQuickView({ event: e, onClose }: { event: CrewEvent; onClos
           </div>
         )}
 
-        <details className="group border-t border-white/10 pt-3">
+        <details ref={openOnDesktop} className="group border-t border-white/10 pt-3">
           <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-bold tracking-[.12em] text-muted uppercase hover:text-white">
             Više o događaju
             <Plus size={20} strokeWidth={3} aria-hidden="true" className="transition-transform group-open:rotate-45" />

@@ -4,7 +4,7 @@ import type { Product } from '~/lib/data'
 import { ProductPhoto } from '../ProductPhoto'
 import { BuyBox } from '../shop/BuyBox'
 import { PadPrompt } from '../ui'
-import { MENU_ITEM, Modal, MoreMenu, ShareButton } from './Modal'
+import { MENU_ITEM, Modal, MoreMenu, ShareButton, openOnDesktop } from './Modal'
 
 /** Product details in a centred dialog, opened from any product card. */
 export function ProductQuickView({ product: p, onClose }: { product: Product; onClose: () => void }) {
@@ -47,7 +47,7 @@ export function ProductQuickView({ product: p, onClose }: { product: Product; on
           <p className="text-lg leading-snug text-soft">{p.blurb}</p>
           <BuyBox product={p} padKey />
           {p.details.length > 0 && (
-            <details className="group border-t border-white/10 pt-3">
+            <details ref={openOnDesktop} className="group border-t border-white/10 pt-3">
               <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-bold tracking-[.12em] text-muted uppercase hover:text-white">
                 Detalji
                 <Plus size={20} strokeWidth={3} aria-hidden="true" className="transition-transform group-open:rotate-45" />

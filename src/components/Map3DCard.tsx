@@ -6,30 +6,25 @@ import { LIVNO, PLACES, type CrewEvent } from '~/lib/data'
 import { routeLonLat } from '~/lib/routes'
 import { Place } from './ui'
 
-// OpenStreetMap vector tiles (OpenFreeMap, OpenMapTiles schema) + AWS terrain,
-// drawn in a dark, game-like style. No API key needed.
+// OpenStreetMap vector tiles (OpenFreeMap, OpenMapTiles schema) in a plain
+// dark style. No API key needed.
 const TILES = 'https://tiles.openfreemap.org/planet'
-const DEM = 'https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png'
 
 const STYLE = {
   version: 8,
   glyphs: 'https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf',
   sources: {
     osm: { type: 'vector', url: TILES },
-    dem: { type: 'raster-dem', tiles: [DEM], tileSize: 256, maxzoom: 14, encoding: 'terrarium' },
   },
-  sky: { 'sky-color': '#1a1426', 'horizon-color': '#3a1d3f', 'fog-color': '#140f1e', 'sky-horizon-blend': 0.6, 'horizon-fog-blend': 0.7, 'fog-ground-blend': 0.4 },
   layers: [
     { id: 'bg', type: 'background', paint: { 'background-color': '#1b1626' } },
-    { id: 'hills', type: 'hillshade', source: 'dem', paint: { 'hillshade-shadow-color': '#07050b', 'hillshade-highlight-color': '#5a4b74', 'hillshade-accent-color': '#2b2140', 'hillshade-exaggeration': 0.6 } },
-    { id: 'wood', type: 'fill', source: 'osm', 'source-layer': 'landcover', filter: ['in', ['get', 'class'], ['literal', ['wood', 'forest', 'grass']]], paint: { 'fill-color': '#22303a', 'fill-opacity': 0.45 } },
+    { id: 'wood', type: 'fill', source: 'osm', 'source-layer': 'landcover', filter: ['in', ['get', 'class'], ['literal', ['wood', 'forest', 'grass']]], paint: { 'fill-color': '#1f2530', 'fill-opacity': 0.5 } },
     { id: 'urban', type: 'fill', source: 'osm', 'source-layer': 'landuse', filter: ['in', ['get', 'class'], ['literal', ['residential', 'industrial', 'commercial']]], paint: { 'fill-color': '#2c2438', 'fill-opacity': 0.8 } },
     { id: 'water', type: 'fill', source: 'osm', 'source-layer': 'water', paint: { 'fill-color': '#0f3550' } },
     { id: 'river', type: 'line', source: 'osm', 'source-layer': 'waterway', paint: { 'line-color': '#1d5a80', 'line-width': 1.2 } },
     { id: 'minor', type: 'line', source: 'osm', 'source-layer': 'transportation', filter: ['in', ['get', 'class'], ['literal', ['minor', 'tertiary', 'secondary', 'service']]], paint: { 'line-color': '#5b5170', 'line-width': ['interpolate', ['linear'], ['zoom'], 9, 0.4, 14, 2] } },
     { id: 'major', type: 'line', source: 'osm', 'source-layer': 'transportation', filter: ['in', ['get', 'class'], ['literal', ['primary', 'trunk']]], paint: { 'line-color': '#c9c2d8', 'line-width': ['interpolate', ['linear'], ['zoom'], 8, 0.8, 14, 4] } },
     { id: 'motorway', type: 'line', source: 'osm', 'source-layer': 'transportation', filter: ['==', ['get', 'class'], 'motorway'], paint: { 'line-color': '#f2b632', 'line-width': ['interpolate', ['linear'], ['zoom'], 8, 1.2, 14, 5] } },
-    { id: 'buildings', type: 'fill-extrusion', source: 'osm', 'source-layer': 'building', minzoom: 13, paint: { 'fill-extrusion-color': '#3a3050', 'fill-extrusion-height': ['coalesce', ['get', 'render_height'], 6], 'fill-extrusion-opacity': 0.9 } },
     { id: 'towns', type: 'symbol', source: 'osm', 'source-layer': 'place', filter: ['in', ['get', 'class'], ['literal', ['city', 'town', 'village']]], layout: { 'text-field': ['upcase', ['get', 'name']], 'text-font': ['Noto Sans Bold'], 'text-size': 11, 'text-letter-spacing': 0.12 }, paint: { 'text-color': '#e9e4f5', 'text-halo-color': '#120e1a', 'text-halo-width': 1.5 } },
   ],
 }
@@ -49,8 +44,8 @@ function pin(color: string, label: string) {
 }
 
 /**
- * Hero card for the featured event: a slowly orbiting 3D OpenStreetMap view of
- * the drive (terrain, roads, the route), with the event on top.
+ * Hero card for the featured event: a flat, dark OpenStreetMap view of the
+ * drive (roads, water, the route), with the event on top.
  */
 export function Map3DCard({ event: e }: { event: CrewEvent }) {
   const box = useRef<HTMLDivElement>(null)
@@ -60,15 +55,7 @@ export function Map3DCard({ event: e }: { event: CrewEvent }) {
     const el = box.current
     if (!el) return
     let map: import('maplibre-gl').Map | undefined
-    let raf = 0
-    let visible = false
     let cancelled = false
-    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
-
-    const spin = () => {
-      if (map && visible && !reduce) map.setBearing((map.getBearing() + 0.04) % 360)
-      raf = requestAnimationFrame(spin)
-    }
 
     const start = async () => {
       // Browser only: keeps MapLibre out of the server bundle.
@@ -89,15 +76,12 @@ export function Map3DCard({ event: e }: { event: CrewEvent }) {
           [Math.max(...lons) + 0.008, Math.max(...lats) + 0.008],
         ],
         fitBoundsOptions: { padding: { top: 40, bottom: 100, left: 30, right: 30 } },
-        pitch: 62,
-        bearing: -20,
         interactive: false,
         attributionControl: false,
         fadeDuration: 0,
       })
       map = m
       m.on('load', () => {
-        m.setTerrain({ source: 'dem', exaggeration: 1.6 })
         if (line.length > 1) {
           m.addSource('route', { type: 'geojson', data: { type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: line } } })
           m.addLayer({ id: 'route-glow', type: 'line', source: 'route', paint: { 'line-color': '#ff18a0', 'line-width': 10, 'line-blur': 8, 'line-opacity': 0.6 } })
@@ -107,19 +91,16 @@ export function Map3DCard({ event: e }: { event: CrewEvent }) {
         if (dest) new maplibregl.Marker({ element: pin('#ff18a0', '') }).setLngLat([dest.lon, dest.lat]).addTo(m)
         setReady(true)
       })
-      raf = requestAnimationFrame(spin)
     }
 
-    // Only load the map once the card is on screen; only orbit while it is.
+    // Only load the map once the card is on screen.
     const io = new IntersectionObserver(([entry]) => {
-      visible = entry.isIntersecting
-      if (visible && !map) start().catch(() => {})
+      if (entry.isIntersecting && !map) start().catch(() => {})
     })
     io.observe(el)
     return () => {
       cancelled = true
       io.disconnect()
-      cancelAnimationFrame(raf)
       map?.remove()
     }
   }, [e.place])
@@ -131,8 +112,8 @@ export function Map3DCard({ event: e }: { event: CrewEvent }) {
         aria-hidden="true"
         className={`absolute inset-0 transition-opacity duration-700 ${ready ? 'opacity-100' : 'opacity-0'}`}
       />
-      {/* Vignette, like the in-game map */}
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(120%_90%_at_50%_40%,transparent_45%,rgba(10,8,16,.85))]" />
+      {/* Soft vignette */}
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(120%_90%_at_50%_40%,transparent_55%,rgba(10,8,16,.6))]" />
       <Link
         to="."
         search={(s) => ({ ...s, e: e.id })}
