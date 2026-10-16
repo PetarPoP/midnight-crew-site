@@ -44,7 +44,7 @@ Sadržaj je u `src/content/` (JSON datoteke), pa se može uređivati i ručno.
 - `src/content/` sadržaj koji se uređuje u CMS-u: `events/`, `products/`, `places/`, `settings.json`
 - `src/lib/data.ts` učitava sadržaj i priprema ga za stranicu
 - `src/components/overlay/` brzi pregled artikla (`?p=`) i događaja (`?e=`), otvara se na bilo kojoj stranici
-- `src/lib/mapData.ts` podloga karte, generirano skriptom `scripts/build-map.py`
+- `src/lib/mapStyle.ts` izgled karte (OpenStreetMap, tamna tema), isti za kartu u heroju i sekciju Karta
 - `src/lib/routes.json` rute od Livna, puni ih `scripts/fetch-routes.mjs`
 - `public/admin/` CMS (Sveltia CMS), `public/images/` fotografije
 
@@ -63,16 +63,9 @@ Sadržaj je u `src/content/` (JSON datoteke), pa se može uređivati i ručno.
 
 ## Karta
 
-Karta je napravljena iz pravih podataka: obala, granice, rijeke, jezera i ceste su iz [Natural Earth](https://www.naturalearthdata.com) (1:10m), a rute, kilometri i vrijeme vožnje od Livna su prave rute iz [OSRM](https://project-osrm.org). Karta se pomiče povlačenjem, zumira kotačićem, tipkama `+` / `−` ili strelicama, a na mobitelu s dva prsta.
+Obje karte (kartica "Novo · Otključano" i sekcija Karta) su [OpenStreetMap](https://www.openstreetmap.org/copyright) u tamnoj temi, preko besplatnih [OpenFreeMap](https://openfreemap.org) pločica (bez API ključa), a rute, kilometri i vrijeme vožnje od Livna su prave rute iz [OSRM](https://project-osrm.org). Karta se pomiče povlačenjem, zumira kotačićem, tipkama `+` / `−` ili strelicama, a na mobitelu s dva prsta.
 
 Novo mjesto dodaješ u CMS-u (Gdje smo bili). `npm run build` prvo pokrene `scripts/fetch-routes.mjs`, koji za nova mjesta dohvati rutu iz OSRM-a i spremi je u `src/lib/routes.json`; dok ruta ne stigne, karta crta ravnu liniju.
-
-Podloga karte se ponovno generira samo ako mijenjaš područje karte:
-
-```bash
-pip install shapely
-python3 scripts/build-map.py <mapa s Natural Earth geojson datotekama>
-```
 
 ## Fotografije
 

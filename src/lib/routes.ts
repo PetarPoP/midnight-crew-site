@@ -1,4 +1,3 @@
-import { project } from './mapData'
 import cache from './routes.json'
 
 /** Decodes a Google/OSRM polyline (precision 5) into [lon, lat] pairs. */
@@ -28,19 +27,16 @@ function decode(s: string): [number, number][] {
 }
 
 const ORIGIN = cache.origin
-const fmt = (v: number) => String(Math.round(v * 10) / 10)
 
 /**
- * Route from Livno to a place, in map pixels. Uses the cached driving route
- * when there is one for these coordinates, otherwise a straight line with an
- * estimated distance (until the next build fetches the real route).
+ * Route from Livno to a place as [lon, lat] pairs, with distance and drive
+ * time. Uses the cached driving route when there is one for these
+ * coordinates, otherwise a straight line with an estimated distance (until the
+ * next build fetches the real route).
  */
 export function routeTo(name: string, lon: number, lat: number) {
   const hit = cache.routes.find((r) => r.name === name && Math.abs(r.lon - lon) < 1e-6 && Math.abs(r.lat - lat) < 1e-6)
-  const lonlat = hit ? decode(hit.polyline) : [[ORIGIN.lon, ORIGIN.lat] as [number, number], [lon, lat] as [number, number]]
-  const pts = lonlat.map(([x, y]) => project(x, y))
-  const xs = pts.map((p) => p[0])
-  const ys = pts.map((p) => p[1])
+  const line = hit ? decode(hit.polyline) : [[ORIGIN.lon, ORIGIN.lat] as [number, number], [lon, lat] as [number, number]]
   let km: number
   let min: number
   if (hit) {
@@ -54,16 +50,10 @@ export function routeTo(name: string, lon: number, lat: number) {
     km = Math.round(6371 * 2 * Math.asin(Math.sqrt(a)) * 1.3)
     min = Math.round((km / 70) * 60)
   }
-  return {
-    d: 'M' + pts.map(([x, y]) => `${fmt(x)},${fmt(y)}`).join(' L'),
-    km,
-    min,
-    bbox: [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)] as const,
-  }
+  return { line, km, min }
 }
 
 /** Route from Livno to a place as [lon, lat] pairs (straight line if not cached). */
 export function routeLonLat(name: string, lon: number, lat: number): [number, number][] {
-  const hit = cache.routes.find((r) => r.name === name && Math.abs(r.lon - lon) < 1e-6 && Math.abs(r.lat - lat) < 1e-6)
-  return hit ? decode(hit.polyline) : [[ORIGIN.lon, ORIGIN.lat], [lon, lat]]
+  return routeTo(name, lon, lat).line
 }

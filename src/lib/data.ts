@@ -1,4 +1,3 @@
-import { project } from './mapData'
 import { routeTo } from './routes'
 
 export type Kind = 'nas' | 'idemo' | 'bili'
@@ -87,8 +86,7 @@ const PLACE_DATA = byFile(import.meta.glob<{ default: PlaceFile }>('../content/p
 
 export const PLACES = PLACE_DATA.map((p) => {
   const r = routeTo(p.name, p.lon, p.lat)
-  const [x, y] = project(p.lon, p.lat)
-  return { name: p.name, lon: p.lon, lat: p.lat, k: p.kind, photo: p.photo ?? '', x, y, km: r.km, minutes: r.min, route: r.d, bbox: r.bbox }
+  return { name: p.name, lon: p.lon, lat: p.lat, k: p.kind, photo: p.photo ?? '', km: r.km, minutes: r.min, line: r.line }
 })
 export type PlaceWithKm = (typeof PLACES)[number]
 

@@ -1,10 +1,9 @@
 import { Check, Crosshair, Flag, Minus, Play, Plus, Square, Star } from 'lucide-react'
-import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { FILTERS, KIND_COLOR, LIVNO, MAX_KM, PLACES, TOTAL_KM, eventsAt, formatKm, placeBadge, type FilterKey } from '~/lib/data'
-import { MAP, project } from '~/lib/mapData'
+import type { GeoJSONSource, LngLatBoundsLike, Map as MlMap } from 'maplibre-gl'
 import { useCountUp } from '~/lib/useCountUp'
-import { BaseMap, TOWNS } from './map/BaseMap'
-import { usePanZoom } from './map/usePanZoom'
+import { MapMarker, useOsmMap } from './map/OsmMap'
 import { KeyHint, PadPrompt, SectionHead } from './ui'
 
 const LEGEND = [
@@ -13,25 +12,72 @@ const LEGEND = [
   { label: 'Bili smo', color: KIND_COLOR.bili },
 ]
 
-const [LIVNO_X, LIVNO_Y] = project(LIVNO.lon, LIVNO.lat)
-const TOWN_XY = TOWNS.map(([name, lon, lat]) => ({ name, xy: project(lon, lat) }))
 // Opening frame: the region around Livno (everything except Zagreb).
-const NEAR = PLACES.filter((p) => p.name !== 'Zagreb')
-const START_BOX = [
-  Math.min(...NEAR.map((p) => p.x)),
-  Math.min(...NEAR.map((p) => p.y), LIVNO_Y),
-  Math.max(...NEAR.map((p) => p.x)),
-  Math.max(...NEAR.map((p) => p.y)),
-] as const
+const NEAR = [...PLACES.filter((p) => p.name !== 'Zagreb'), LIVNO]
+const START_BOX = bounds(NEAR.map((p) => [p.lon, p.lat]))
 
-// km per world pixel at the map's middle latitude (for the scale bar).
-const KM_PER_PX = (111.32 * Math.cos((44 * Math.PI) / 180)) / 400
+function bounds(pts: number[][]): LngLatBoundsLike {
+  const lons = pts.map((p) => p[0])
+  const lats = pts.map((p) => p[1])
+  return [
+    [Math.min(...lons), Math.min(...lats)],
+    [Math.max(...lons), Math.max(...lats)],
+  ]
+}
+
+/** Room around a framed route so pins clear the tabs, buttons and legend on top of the map. */
+const mapPadding = (map: MlMap) =>
+  map.getContainer().clientWidth >= 768 ? { top: 160, bottom: 140, left: 140, right: 140 } : { top: 60, bottom: 50, left: 40, right: 60 }
+
+type Line = [number, number][]
+const feature = (coordinates: Line) => ({ type: 'Feature' as const, properties: {}, geometry: { type: 'LineString' as const, coordinates } })
+const point = (coordinates: [number, number]) => ({ type: 'Feature' as const, properties: {}, geometry: { type: 'Point' as const, coordinates } })
+
+/** Route layers: pink glow, pink line, white dashes once drawn, and a "car" dot leading the line. */
+function addRouteLayers(map: MlMap) {
+  map.addSource('route', { type: 'geojson', data: feature([]) })
+  map.addSource('car', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } })
+  map.addLayer({ id: 'route-glow', type: 'line', source: 'route', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#ff18a0', 'line-width': 14, 'line-blur': 8, 'line-opacity': 0.6 } })
+  map.addLayer({ id: 'route', type: 'line', source: 'route', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#ff4fb8', 'line-width': 4.5 } })
+  map.addLayer({ id: 'route-dash', type: 'line', source: 'route', layout: { 'line-join': 'round', visibility: 'none' }, paint: { 'line-color': '#fff', 'line-width': 1.6, 'line-dasharray': [0.6, 2.4] } })
+  map.addLayer({ id: 'car', type: 'circle', source: 'car', paint: { 'circle-radius': 5, 'circle-color': '#fff', 'circle-stroke-color': '#ff18a0', 'circle-stroke-width': 3 } })
+}
+
+/** Draws the line from its start over `ms`, easing in and out; returns a cancel function. */
+function drawRoute(map: MlMap, line: Line, ms: number) {
+  const route = map.getSource('route') as GeoJSONSource
+  const car = map.getSource('car') as GeoJSONSource
+  map.setLayoutProperty('route-dash', 'visibility', 'none')
+  // Cumulative length along the line, to move at an even pace.
+  const acc = [0]
+  for (let i = 1; i < line.length; i++) acc.push(acc[i - 1] + Math.hypot(line[i][0] - line[i - 1][0], line[i][1] - line[i - 1][1]))
+  const total = acc[acc.length - 1] || 1
+  const ease = (x: number) => (x < 0.5 ? 4 * x * x * x : 1 - (-2 * x + 2) ** 3 / 2)
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
+  const t0 = performance.now()
+  let raf = 0
+  const frame = (now: number) => {
+    const k = reduce ? 1 : Math.min(1, (now - t0) / ms)
+    const d = ease(k) * total
+    let i = acc.findIndex((a) => a >= d)
+    if (i < 1) i = 1
+    const f = (d - acc[i - 1]) / (acc[i] - acc[i - 1] || 1)
+    const tip: [number, number] = [line[i - 1][0] + (line[i][0] - line[i - 1][0]) * f, line[i - 1][1] + (line[i][1] - line[i - 1][1]) * f]
+    route.setData(feature([...line.slice(0, i), tip]))
+    car.setData(point(tip))
+    if (k < 1) raf = requestAnimationFrame(frame)
+    else map.setLayoutProperty('route-dash', 'visibility', 'visible')
+  }
+  raf = requestAnimationFrame(frame)
+  return () => cancelAnimationFrame(raf)
+}
 
 export function MapSection() {
   const [sel, setSelRaw] = useState('Split')
   const [playing, setPlaying] = useState(false)
   const [filter, setFilter] = useState<FilterKey>('sve')
-  const map = usePanZoom(MAP.W, MAP.H, START_BOX)
+  const box = useRef<HTMLDivElement>(null)
+  const { map, lib, view } = useOsmMap(box, START_BOX)
   const firstSel = useRef(true)
 
   const selected = PLACES.find((p) => p.name === sel) ?? PLACES[0]
@@ -69,27 +115,31 @@ export function MapSection() {
   const minutes = useCountUp(selected.minutes)
   const waypointUrl = `https://www.google.com/maps/dir/?api=1&origin=Livno&destination=${encodeURIComponent(selected.name)}&travelmode=driving`
 
-  // Fly the camera to the whole route whenever the destination changes.
+  // Route layers, once the map is ready.
   useEffect(() => {
+    if (map && !map.getSource('route')) addRouteLayers(map)
+  }, [map])
+
+  // Draw the route and fly the camera to it whenever the destination changes.
+  useEffect(() => {
+    if (!map) return
+    const cancel = drawRoute(map, selected.line, parseFloat(drawDur) * 1000)
     if (firstSel.current) {
+      // Opening frame, with room for the controls on top of the map.
       firstSel.current = false
-      return
+      map.fitBounds(START_BOX, { padding: mapPadding(map), duration: 0 })
+    } else {
+      map.fitBounds(bounds([...selected.line, [selected.lon, selected.lat]]), { padding: mapPadding(map), duration: 1200 })
     }
-    const [x0, y0, x1, y1] = selected.bbox
-    map.flyTo([Math.min(x0, selected.x), Math.min(y0, selected.y), Math.max(x1, selected.x), Math.max(y1, selected.y)])
-  }, [sel])
+    return cancel
+  }, [map, sel])
 
   // Scale bar: pick a round distance that is 70–180px wide at this zoom.
-  const pxPerKm = map.view.s / KM_PER_PX
-  const scaleKm = [5, 10, 20, 25, 50, 100, 200].find((k) => k * pxPerKm >= 70) ?? 200
+  const pxPerKm = 1000 / ((40075016.686 * Math.cos((view.lat * Math.PI) / 180)) / (512 * 2 ** view.zoom))
+  const scaleKm = [1, 2, 5, 10, 20, 25, 50, 100, 200].find((k) => k * pxPerKm >= 70) ?? 200
 
-  // React may have just re-created overlay nodes (e.g. a new route); place them before paint.
-  useLayoutEffect(map.sync)
-
-  const worldStyle = { ...map.worldStyle, width: MAP.W, height: MAP.H } as CSSProperties
-
-  // Markers keep the same on-screen size at every zoom level.
-  const marker = (scale = 1) => ({ transform: `translate(-50%,-50%) scale(calc(var(--pin) * ${scale}))` })
+  // Pins keep the same on-screen size at every zoom level (smaller on phones).
+  const pinScale = (scale = 1) => ({ scale: `calc(var(--pin) * ${scale})` }) as CSSProperties
 
   return (
     <section aria-labelledby="karta-title">
@@ -119,124 +169,65 @@ export function MapSection() {
       <div className="grid grid-cols-1 gap-3 px-5 pb-16 md:px-(--gutter) xl:grid-cols-[minmax(0,1fr)_440px]">
         {/* Map */}
         <div
-          ref={map.ref}
           data-reveal="left"
-          tabIndex={0}
-          aria-label="Karta, povuci za pomicanje, kotačić za zumiranje"
-          onKeyDown={(e) => {
-            const step = 90
-            const moves: Record<string, [number, number]> = {
-              ArrowLeft: [step, 0],
-              ArrowRight: [-step, 0],
-              ArrowUp: [0, step],
-              ArrowDown: [0, -step],
-            }
-            if (moves[e.key]) {
-              e.preventDefault()
-              map.pan(...moves[e.key])
-            } else if (e.key === '+' || e.key === '=') map.zoomBy(1.4)
-            else if (e.key === '-') map.zoomBy(1 / 1.4)
-          }}
-          className={`map-corners relative aspect-[860/640] w-full touch-pan-y overflow-hidden bg-[#0c2c44] shadow-[0_0_0_4px_#fff] outline-none select-none [--pin:.6] focus-visible:shadow-[0_0_0_4px_var(--color-lime)] sm:[--pin:.8] md:touch-none xl:aspect-auto xl:h-[clamp(640px,46vw,760px)] xl:w-full xl:[--pin:1] ${
-            map.moving ? 'cursor-grabbing' : 'cursor-grab'
-          }`}
+          className="map-corners relative aspect-[860/640] w-full overflow-hidden bg-[#1b1626] shadow-[0_0_0_4px_#fff] [--pin:.6] has-[canvas:focus-visible]:shadow-[0_0_0_4px_var(--color-lime)] sm:[--pin:.8] xl:aspect-auto xl:h-[clamp(640px,46vw,760px)] xl:w-full xl:[--pin:1]"
         >
-          <div ref={map.worldRef} className="absolute top-0 left-0" style={worldStyle}>
-            <BaseMap />
+          <div className="absolute inset-0">
+            <div ref={box} className="size-full" aria-label="Karta odredišta" />
           </div>
 
-          {/* Screen-space overlay: route and pins follow the map via usePanZoom. */}
-          <div ref={map.overlayRef} className="pointer-events-none absolute inset-0">
-            {/* Active route from Livno */}
-            <svg className="absolute inset-0 size-full overflow-visible" aria-hidden="true">
-              {/* key restarts the draw animation every time the destination changes */}
-              <g
-                key={sel}
-                data-world-g=""
-                transform={`translate(${map.first.x} ${map.first.y}) scale(${map.first.s})`}
-                fill="none"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                style={{ '--dur': drawDur } as CSSProperties}
-              >
-                <path d={selected.route} pathLength={1} className="route-draw" stroke="#ff18a0" opacity=".3" data-world-sw="16" strokeWidth={16 / map.first.s} />
-                <path d={selected.route} pathLength={1} className="route-draw" stroke="#ff4fb8" data-world-sw="6" strokeWidth={6 / map.first.s} />
-                <g className="route-after">
-                  <path
-                    d={selected.route}
-                    stroke="#fff"
-                    className="animate-route-dash"
-                    pathLength={400}
-                    strokeDasharray="1 3"
-                    data-world-sw="2.4"
-                    strokeWidth={2.4 / map.first.s}
-                  />
-                </g>
-                {/* the "car" leading the route */}
-                <circle data-world-r="6" r={6 / map.first.s} fill="#fff" stroke="var(--color-pink)" data-world-sw="3" strokeWidth={3 / map.first.s}>
-                  <animateMotion dur={drawDur} path={selected.route} fill="freeze" calcMode="spline" keyTimes="0;1" keySplines=".6 0 .3 1" />
-                </circle>
-              </g>
-            </svg>
-
-            {/* Town names: same size on screen at every zoom */}
-            {TOWN_XY.map(({ name, xy: [x, y] }) => (
-              <div key={name} className="absolute top-0 left-0 z-[1]" data-wx={x} data-wy={y} style={{ ...map.at(x, y), ...marker() }}>
-                <div className="size-[7px] rounded-full bg-[#c9c2d8]" />
-                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 text-[15px] font-bold tracking-[.12em] whitespace-nowrap text-[#e9e4f5] uppercase [text-shadow:0_0_3px_#120e1a,0_0_6px_#120e1a]">
-                  {name}
+          {map && lib && (
+            <>
+              {/* Home base: Livno */}
+              <MapMarker map={map} lib={lib} lon={LIVNO.lon} lat={LIVNO.lat} z={6}>
+                <div className="pointer-events-none relative" style={pinScale()}>
+                  <div className="animate-pin-pulse absolute top-1/2 left-1/2 -mt-[60px] -ml-[60px] size-[120px] rounded-full border-[3px] border-lime" />
+                  <div className="hex relative flex h-[68px] w-[60px] items-center justify-center bg-white">
+                    <div className="hex flex h-[60px] w-[52px] items-center justify-center bg-lime text-[26px] font-extrabold text-ink italic">MC</div>
+                  </div>
+                  <div className="absolute -top-11 left-1/2 -translate-x-1/2 -skew-x-12 bg-ink px-3 py-[3px] text-[17px] font-extrabold tracking-[.04em] whitespace-nowrap uppercase italic">
+                    Livno · Festival
+                  </div>
                 </div>
-              </div>
-            ))}
+              </MapMarker>
 
-            {/* Home base: Livno */}
-            <div className="pointer-events-none absolute top-0 left-0 z-[6]" data-wx={LIVNO_X} data-wy={LIVNO_Y} style={{ ...map.at(LIVNO_X, LIVNO_Y), ...marker() }}>
-              <div className="animate-pin-pulse absolute top-1/2 left-1/2 -mt-[60px] -ml-[60px] size-[120px] rounded-full border-[3px] border-lime" />
-              <div className="hex relative flex h-[68px] w-[60px] items-center justify-center bg-white">
-                <div className="hex flex h-[60px] w-[52px] items-center justify-center bg-lime text-[26px] font-extrabold text-ink italic">MC</div>
-              </div>
-              <div className="absolute -top-11 left-1/2 -translate-x-1/2 -skew-x-12 bg-ink px-3 py-[3px] text-[17px] font-extrabold tracking-[.04em] whitespace-nowrap uppercase italic">
-                Livno · Festival
-              </div>
-            </div>
-
-            {/* Destination pins */}
-            {PLACES.map((p) => {
-              const on = p.name === sel
-              const dim = filter !== 'sve' && p.k !== filter
-              return (
-                <button
-                  key={p.name}
-                  type="button"
-                  onClick={() => setSel(p.name)}
-                  aria-pressed={on}
-                  aria-label={`${p.name}, ${p.km} km od Livna`}
-                  data-wx={p.x}
-                  data-wy={p.y}
-                  className="group pointer-events-auto absolute top-0 left-0 cursor-pointer transition-opacity duration-200 hover:z-30 hover:brightness-110 focus-visible:outline-none"
-                  style={{ ...map.at(p.x, p.y), opacity: dim ? 0.38 : 1, zIndex: on ? 20 : 5, ...marker(on ? 1.22 : 1) }}
-                >
-                  <div className="hex flex h-[52px] w-[46px] items-center justify-center bg-white transition-transform duration-200 ease-[cubic-bezier(.3,1.6,.5,1)] group-hover:scale-115 group-focus-visible:scale-115">
-                    <div
-                      className="hex flex h-[46px] w-10 items-center justify-center text-xl font-extrabold text-ink italic"
-                      style={{ background: KIND_COLOR[p.k] }}
+              {/* Destination pins */}
+              {PLACES.map((p) => {
+                const on = p.name === sel
+                const dim = filter !== 'sve' && p.k !== filter
+                return (
+                  <MapMarker key={p.name} map={map} lib={lib} lon={p.lon} lat={p.lat} z={on ? 20 : 5}>
+                    <button
+                      type="button"
+                      onClick={() => setSel(p.name)}
+                      aria-pressed={on}
+                      aria-label={`${p.name}, ${p.km} km od Livna`}
+                      className="group relative block cursor-pointer transition-opacity duration-200 hover:brightness-110 focus-visible:outline-none"
+                      style={{ opacity: dim ? 0.38 : 1, ...pinScale(on ? 1.22 : 1) }}
                     >
-                      <KindIcon k={p.k} />
-                    </div>
-                  </div>
-                  <div
-                    className={`absolute top-14 left-1/2 -translate-x-1/2 -skew-x-12 px-2.5 py-0.5 text-[15px] font-extrabold tracking-[.04em] whitespace-nowrap uppercase italic ${
-                      on
-                        ? 'bg-white text-ink'
-                        : 'bg-ink text-white group-hover:bg-white group-hover:text-ink group-focus-visible:bg-white group-focus-visible:text-ink'
-                    }`}
-                  >
-                    {p.name}
-                  </div>
-                </button>
-              )
-            })}
-          </div>
+                      <div className="hex flex h-[52px] w-[46px] items-center justify-center bg-white transition-transform duration-200 ease-[cubic-bezier(.3,1.6,.5,1)] group-hover:scale-115 group-focus-visible:scale-115">
+                        <div
+                          className="hex flex h-[46px] w-10 items-center justify-center text-xl font-extrabold text-ink italic"
+                          style={{ background: KIND_COLOR[p.k] }}
+                        >
+                          <KindIcon k={p.k} />
+                        </div>
+                      </div>
+                      <div
+                        className={`absolute top-14 left-1/2 -translate-x-1/2 -skew-x-12 px-2.5 py-0.5 text-[15px] font-extrabold tracking-[.04em] whitespace-nowrap uppercase italic ${
+                          on
+                            ? 'bg-white text-ink'
+                            : 'bg-ink text-white group-hover:bg-white group-hover:text-ink group-focus-visible:bg-white group-focus-visible:text-ink'
+                        }`}
+                      >
+                        {p.name}
+                      </div>
+                    </button>
+                  </MapMarker>
+                )
+              })}
+            </>
+          )}
 
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(120%_100%_at_50%_50%,transparent_55%,rgba(10,8,16,.75))]" />
 
@@ -273,13 +264,13 @@ export function MapSection() {
               <span className="absolute -top-1 left-1/2 -translate-x-1/2 rounded bg-ink px-[5px] text-sm font-extrabold">N</span>
             </div>
             <div className="flex flex-col bg-ink/80 text-xl font-extrabold shadow-[inset_0_0_0_2px_rgba(255,255,255,.2)] md:text-2xl">
-              <MapButton label="Približi" onClick={() => map.zoomBy(1.5)}>
+              <MapButton label="Približi" onClick={() => map?.zoomIn()}>
                 <Plus size={20} strokeWidth={3} aria-hidden="true" />
               </MapButton>
-              <MapButton label="Udalji" onClick={() => map.zoomBy(1 / 1.5)}>
+              <MapButton label="Udalji" onClick={() => map?.zoomOut()}>
                 <Minus size={20} strokeWidth={3} aria-hidden="true" />
               </MapButton>
-              <MapButton label="Vrati na Livno" onClick={() => map.flyTo(START_BOX)}>
+              <MapButton label="Vrati na Livno" onClick={() => map && map.fitBounds(START_BOX, { padding: mapPadding(map), duration: 1200 })}>
                 <Crosshair size={19} strokeWidth={2.5} aria-hidden="true" />
               </MapButton>
             </div>
@@ -318,9 +309,6 @@ export function MapSection() {
             </div>
           </div>
 
-          <div className="pointer-events-none absolute bottom-2 left-3 font-sans text-[10px] text-ink/50 md:hidden">
-            Dva prsta za pomicanje karte
-          </div>
         </div>
 
         {/* Side panel */}
