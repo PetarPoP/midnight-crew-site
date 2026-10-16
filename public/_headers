@@ -1,0 +1,13 @@
+# Cache headers for static files (Cloudflare Workers static assets).
+# Built assets in /assets/ have hashed names and never change.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Photos, their smaller copies, map worker and link-preview cards: keep for a
+# day, then check for a newer version (CMS uploads keep their names).
+/images/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+/vendor/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+/og/*
+  Cache-Control: public, max-age=3600

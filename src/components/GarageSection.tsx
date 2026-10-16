@@ -5,6 +5,7 @@ import { JoinModal } from './JoinModal'
 import { GARAGE, crewLevel, type Car } from '~/lib/data'
 import { isTyping } from '~/lib/useGameKeys'
 import { KeyHint, PadPrompt, SectionHead } from './ui'
+import { Picture } from './Picture'
 
 const DRIVE = { rwd: 'Zadnji', fwd: 'Prednji', awd: '4×4' } as const
 
@@ -226,8 +227,9 @@ function Showroom({ year }: { year: number }) {
 function CarImage({ car, small = false }: { car: Car; small?: boolean }) {
   if (car.image) {
     return (
-      <img
+      <Picture
         src={car.image}
+        sizes={small ? '200px' : '(min-width: 768px) 900px, 100vw'}
         alt={`${car.car}, ${car.owner}`}
         loading={small ? 'lazy' : 'eager'}
         draggable={false}

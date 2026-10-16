@@ -5,6 +5,7 @@ import { useCountdown } from '~/lib/useCountdown'
 import { Header } from './Header'
 import { Map3DCard } from './Map3DCard'
 import { Credit, PadPrompt, Place } from './ui'
+import { Picture } from './Picture'
 
 /**
  * Grid cell for a slanted tile. The outer element handles the grid span and
@@ -89,8 +90,9 @@ export function Hero() {
     >
       {/* Background photo: drifts down at a fraction of the scroll speed */}
       <div className="hero-bg absolute inset-0 overflow-hidden">
-        <img
+        <Picture
           src="/images/hero-bg.jpg"
+          sizes="100vw"
           alt=""
           className="size-full animate-[hero-zoom_14s_ease-out_both] object-cover"
           fetchPriority="high"
@@ -141,8 +143,9 @@ export function Hero() {
         <Tile i={1} className="h-[200px] xl:h-auto">
           <a id="galerija" href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" className={`${TILE} group scroll-mt-6 bg-[#222]`}>
             <div className="absolute inset-y-0 -inset-x-[30px] skew-x-6">
-              <img
+              <Picture
                 src="/images/galerija.jpg"
+                sizes="(min-width: 1280px) 280px, (min-width: 768px) 50vw, 100vw"
                 alt="Auto u magli, noćna fotografija"
                 className="size-full object-cover transition-transform duration-700 group-hover:scale-110"
               />

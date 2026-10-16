@@ -1,12 +1,14 @@
 import type { Product } from '~/lib/data'
+import { Picture } from './Picture'
 
 /** Product photo, or a placeholder until a photo is added in the CMS. */
 export function ProductPhoto({ product, className = '' }: { product: Product; className?: string }) {
   if (product.image) {
     return (
       <div className={`aspect-[16/11] overflow-hidden bg-panel-2 ${className}`}>
-        <img
+        <Picture
           src={product.image}
+          sizes="(min-width: 1280px) 400px, (min-width: 768px) 50vw, 100vw"
           alt={product.name}
           loading="lazy"
           className="size-full object-cover transition-transform duration-500 group-hover:scale-105"

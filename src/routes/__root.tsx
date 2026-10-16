@@ -12,7 +12,10 @@ import { useGameKeys } from '~/lib/useGameKeys'
 import { RevealObserver } from '~/components/RevealObserver'
 import { CartToast } from '~/components/CartToast'
 import { QuickViews } from '~/components/overlay/QuickViews'
-import { SITE_URL, eventById, productById } from '~/lib/data'
+import { eventById, productById } from '~/lib/data'
+import { ogMeta } from '~/lib/og'
+
+const DESCRIPTION = 'Midnight Crew iz Livna: car meetovi, noćni cruiseovi i ekipa. Bez članarine, bez drame.'
 
 type OverlaySearch = { p?: string; e?: string }
 
@@ -30,7 +33,7 @@ export const Route = createRootRoute({
       { title: 'Midnight Crew · Livno' },
       {
         name: 'description',
-        content: 'Midnight Crew iz Livna: car meetovi, noćni cruiseovi i ekipa. Bez članarine, bez drame.',
+        content: DESCRIPTION,
       },
       { name: 'theme-color', content: '#14101c' },
     ],
@@ -50,22 +53,22 @@ export const Route = createRootRoute({
   component: RootComponent,
 })
 
-/** Link-preview tags; a shared event link (?e=) previews that event. */
+/** Link-preview tags; a shared event (?e=) or product (?p=) link previews that item. */
 function shareMeta(search: OverlaySearch) {
   const ev = search.e ? eventById(search.e) : undefined
-  const title = ev ? `${ev.title} · ${ev.weekday} ${ev.date} ${ev.time}` : 'Midnight Crew · Livno'
-  const description = ev
-    ? `${ev.place}. ${ev.description}`.trim()
-    : 'Midnight Crew iz Livna: car meetovi, noćni cruiseovi i ekipa. Bez članarine, bez drame.'
-  const image = ev?.image || '/images/hero-bg.jpg'
-  return [
-    { property: 'og:site_name', content: 'Midnight Crew' },
-    { property: 'og:type', content: 'website' },
-    { property: 'og:title', content: title },
-    { property: 'og:description', content: description },
-    { property: 'og:image', content: SITE_URL + image },
-    { name: 'twitter:card', content: 'summary_large_image' },
-  ]
+  if (ev) {
+    return ogMeta({
+      title: `${ev.title} · ${ev.weekday} ${ev.date} ${ev.time}`,
+      description: `${ev.place.replace(/\s*->\s*/g, ' → ')}. ${ev.description}`.trim(),
+      card: `event-${ev.id}`,
+      path: `/?e=${ev.id}`,
+    })
+  }
+  const p = search.p ? productById(search.p) : undefined
+  if (p) {
+    return ogMeta({ title: `${p.name} · ${p.price} KM · Midnight Crew`, description: p.blurb, card: `product-${p.id}`, path: `/shop/${p.id}` })
+  }
+  return ogMeta({ title: 'Midnight Crew · Livno', description: DESCRIPTION, card: 'site' })
 }
 
 function RootComponent() {

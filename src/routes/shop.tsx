@@ -10,12 +10,15 @@ import { CheckoutModal } from '~/components/shop/CheckoutModal'
 import { PRODUCTS, SHOP_FILTERS, type Product, type ShopFilter } from '~/lib/data'
 import { useOverlay } from '~/lib/overlay'
 import { useCart } from '~/lib/cart'
+import { Picture } from '~/components/Picture'
+import { ogMeta } from '~/lib/og'
 
 export const Route = createFileRoute('/shop')({
   head: () => ({
     meta: [
       { title: 'Shop · Midnight Crew' },
       { name: 'description', content: 'Majice, hoodice i naljepnice Midnight Crew ekipe iz Livna.' },
+      ...ogMeta({ title: 'Shop · Midnight Crew', description: 'Majice, hoodice i naljepnice Midnight Crew ekipe iz Livna. Pouzećem po cijeloj BiH.', card: 'shop', path: '/shop' }),
     ],
   }),
   component: ShopPage,
@@ -32,7 +35,7 @@ function ShopPage() {
       <div className="relative">
         {/* Dim strip of the hero photo behind the header */}
         <div className="absolute inset-0 overflow-hidden">
-          <img src="/images/hero-bg.jpg" alt="" className="size-full object-cover object-[50%_65%] opacity-35" />
+          <Picture src="/images/hero-bg.jpg" sizes="100vw" alt="" className="size-full object-cover object-[50%_65%] opacity-35" />
           <div className="absolute inset-0 bg-gradient-to-b from-ink/30 to-ink" />
         </div>
         <Header />

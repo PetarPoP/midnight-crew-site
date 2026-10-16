@@ -9,3 +9,6 @@ dist
 .wrangler
 .dev.vars*
 public/vendor/
+public/images/_opt/
+src/lib/images.json
+public/og/

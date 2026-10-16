@@ -67,6 +67,11 @@ Obje karte (kartica "Novo · Otključano" i sekcija Karta) su [OpenStreetMap](ht
 
 Novo mjesto dodaješ u CMS-u (Gdje smo bili). `npm run build` prvo pokrene `scripts/fetch-routes.mjs`, koji za nova mjesta dohvati rutu iz OSRM-a i spremi je u `src/lib/routes.json`; dok ruta ne stigne, karta crta ravnu liniju.
 
+## Slike i pregled linkova
+
+- `npm run build` pokrene `scripts/optimize-images.mjs`: za svaku sliku u `public/images` (i one uploadane kroz CMS) napravi manje AVIF i WebP verzije, pa mobitel skida samo onoliko koliko treba.
+- `scripts/og-images.mjs` napravi kartice za dijeljenje linka (1200×630) za naslovnicu, shop, svaki događaj i svaki artikl. Kad netko pošalje link na WhatsApp, Instagram, Viber ili Facebook, vidi karticu s naslovom, datumom i mjestom. Link na događaj je `/?e=<id događaja>`.
+
 ## Fotografije
 
 Pozadina: Samuele Errico Piccarini, galerija: Donny Jiang (obje s Unsplasha).

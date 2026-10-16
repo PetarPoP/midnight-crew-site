@@ -6,8 +6,9 @@ import { Header } from '~/components/Header'
 import { ProductPhoto } from '~/components/ProductPhoto'
 import { BuyBox } from '~/components/shop/BuyBox'
 import { PadPrompt } from '~/components/ui'
-import { PRODUCTS, SITE_URL, productById } from '~/lib/data'
+import { PRODUCTS, productById } from '~/lib/data'
 import { useCart } from '~/lib/cart'
+import { ogMeta } from '~/lib/og'
 
 export const Route = createFileRoute('/shop_/$productId')({
   loader: ({ params }) => {
@@ -21,10 +22,7 @@ export const Route = createFileRoute('/shop_/$productId')({
       ? [
           { title: `${p.name} · Shop · Midnight Crew` },
           { name: 'description', content: p.blurb },
-          { property: 'og:title', content: `${p.name} · ${p.price} KM · Midnight Crew` },
-          { property: 'og:description', content: p.blurb },
-          { property: 'og:image', content: SITE_URL + (p.image || '/images/hero-bg.jpg') },
-          { property: 'og:url', content: `${SITE_URL}/shop/${p.id}` },
+          ...ogMeta({ title: `${p.name} · ${p.price} KM · Midnight Crew`, description: p.blurb, card: `product-${p.id}`, path: `/shop/${p.id}` }),
         ]
       : [],
   }),

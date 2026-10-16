@@ -1,10 +1,11 @@
 import { Check, Crosshair, Flag, Minus, Play, Plus, Square, Star } from 'lucide-react'
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { FILTERS, KIND_COLOR, LIVNO, MAX_KM, PLACES, TOTAL_KM, eventsAt, formatKm, placeBadge, type FilterKey } from '~/lib/data'
-import type { GeoJSONSource, LngLatBoundsLike, Map as MlMap } from 'maplibre-gl'
+import type { ExpressionSpecification, GeoJSONSource, LngLatBoundsLike, Map as MlMap } from 'maplibre-gl'
 import { useCountUp } from '~/lib/useCountUp'
 import { MapMarker, useOsmMap } from './map/OsmMap'
 import { KeyHint, PadPrompt, SectionHead } from './ui'
+import { Picture } from './Picture'
 
 const LEGEND = [
   { label: 'Naš meet', color: KIND_COLOR.nas },
@@ -33,38 +34,52 @@ type Line = [number, number][]
 const feature = (coordinates: Line) => ({ type: 'Feature' as const, properties: {}, geometry: { type: 'LineString' as const, coordinates } })
 const point = (coordinates: [number, number]) => ({ type: 'Feature' as const, properties: {}, geometry: { type: 'Point' as const, coordinates } })
 
+const HIDDEN = 'rgba(0,0,0,0)'
+/** Line colour up to `k` (0–1) along the route, nothing after it. */
+const upTo = (k: number, color: string) => ['step', ['line-progress'], color, Math.max(k, 1e-6), HIDDEN] as unknown as ExpressionSpecification
+
 /** Route layers: pink glow, pink line, white dashes once drawn, and a "car" dot leading the line. */
 function addRouteLayers(map: MlMap) {
-  map.addSource('route', { type: 'geojson', data: feature([]) })
+  // lineMetrics lets the line be revealed with a gradient instead of re-uploading geometry every frame.
+  map.addSource('route', { type: 'geojson', data: feature([]), lineMetrics: true })
   map.addSource('car', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } })
-  map.addLayer({ id: 'route-glow', type: 'line', source: 'route', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#ff18a0', 'line-width': 14, 'line-blur': 8, 'line-opacity': 0.6 } })
-  map.addLayer({ id: 'route', type: 'line', source: 'route', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#ff4fb8', 'line-width': 4.5 } })
+  map.addLayer({ id: 'route-glow', type: 'line', source: 'route', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-gradient': upTo(0, '#ff18a0'), 'line-width': 16, 'line-blur': 9, 'line-opacity': 0.65 } })
+  map.addLayer({ id: 'route', type: 'line', source: 'route', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-gradient': upTo(0, '#ff4fb8'), 'line-width': 4.5 } })
   map.addLayer({ id: 'route-dash', type: 'line', source: 'route', layout: { 'line-join': 'round', visibility: 'none' }, paint: { 'line-color': '#fff', 'line-width': 1.6, 'line-dasharray': [0.6, 2.4] } })
-  map.addLayer({ id: 'car', type: 'circle', source: 'car', paint: { 'circle-radius': 5, 'circle-color': '#fff', 'circle-stroke-color': '#ff18a0', 'circle-stroke-width': 3 } })
+  map.addLayer({ id: 'car-glow', type: 'circle', source: 'car', paint: { 'circle-radius': 14, 'circle-color': '#ff18a0', 'circle-blur': 1, 'circle-opacity': 0.8 } })
+  map.addLayer({ id: 'car', type: 'circle', source: 'car', paint: { 'circle-radius': 5.5, 'circle-color': '#fff', 'circle-stroke-color': '#ff18a0', 'circle-stroke-width': 3 } })
 }
 
-/** Draws the line from its start over `ms`, easing in and out; returns a cancel function. */
-function drawRoute(map: MlMap, line: Line, ms: number) {
+/**
+ * Drives the route: after `delay` ms the pink line grows from Livno to the
+ * destination over `ms`, with the "car" dot at its tip. Returns a cancel function.
+ */
+function drawRoute(map: MlMap, line: Line, ms: number, delay: number) {
   const route = map.getSource('route') as GeoJSONSource
   const car = map.getSource('car') as GeoJSONSource
+  route.setData(feature(line))
   map.setLayoutProperty('route-dash', 'visibility', 'none')
-  // Cumulative length along the line, to move at an even pace.
+  // Cumulative length (roughly in km) so the dot matches line-progress.
+  const kx = Math.cos((line[0][1] * Math.PI) / 180)
   const acc = [0]
-  for (let i = 1; i < line.length; i++) acc.push(acc[i - 1] + Math.hypot(line[i][0] - line[i - 1][0], line[i][1] - line[i - 1][1]))
+  for (let i = 1; i < line.length; i++) acc.push(acc[i - 1] + Math.hypot((line[i][0] - line[i - 1][0]) * kx, line[i][1] - line[i - 1][1]))
   const total = acc[acc.length - 1] || 1
   const ease = (x: number) => (x < 0.5 ? 4 * x * x * x : 1 - (-2 * x + 2) ** 3 / 2)
-  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
-  const t0 = performance.now()
-  let raf = 0
-  const frame = (now: number) => {
-    const k = reduce ? 1 : Math.min(1, (now - t0) / ms)
-    const d = ease(k) * total
+  const paint = (k: number) => {
+    map.setPaintProperty('route-glow', 'line-gradient', upTo(k, '#ff18a0'))
+    map.setPaintProperty('route', 'line-gradient', upTo(k, '#ff4fb8'))
+    const d = k * total
     let i = acc.findIndex((a) => a >= d)
     if (i < 1) i = 1
     const f = (d - acc[i - 1]) / (acc[i] - acc[i - 1] || 1)
-    const tip: [number, number] = [line[i - 1][0] + (line[i][0] - line[i - 1][0]) * f, line[i - 1][1] + (line[i][1] - line[i - 1][1]) * f]
-    route.setData(feature([...line.slice(0, i), tip]))
-    car.setData(point(tip))
+    car.setData(point([line[i - 1][0] + (line[i][0] - line[i - 1][0]) * f, line[i - 1][1] + (line[i][1] - line[i - 1][1]) * f]))
+  }
+  paint(0)
+  const t0 = performance.now() + delay
+  let raf = 0
+  const frame = (now: number) => {
+    const k = Math.min(1, Math.max(0, (now - t0) / ms))
+    paint(ease(k))
     if (k < 1) raf = requestAnimationFrame(frame)
     else map.setLayoutProperty('route-dash', 'visibility', 'visible')
   }
@@ -110,7 +125,7 @@ export function MapSection() {
     setPlaying(true)
   }
   // Longer routes take a bit longer to draw.
-  const drawDur = `${Math.min(2.4, 0.7 + selected.km / 200).toFixed(2)}s`
+  const drawMs = Math.min(2600, 1100 + selected.km * 5)
   const km = useCountUp(selected.km)
   const minutes = useCountUp(selected.minutes)
   const waypointUrl = `https://www.google.com/maps/dir/?api=1&origin=Livno&destination=${encodeURIComponent(selected.name)}&travelmode=driving`
@@ -120,18 +135,18 @@ export function MapSection() {
     if (map && !map.getSource('route')) addRouteLayers(map)
   }, [map])
 
-  // Draw the route and fly the camera to it whenever the destination changes.
+  // Fly the camera to the route, then drive it, whenever the destination changes.
   useEffect(() => {
     if (!map) return
-    const cancel = drawRoute(map, selected.line, parseFloat(drawDur) * 1000)
     if (firstSel.current) {
       // Opening frame, with room for the controls on top of the map.
       firstSel.current = false
       map.fitBounds(START_BOX, { padding: mapPadding(map), duration: 0 })
-    } else {
-      map.fitBounds(bounds([...selected.line, [selected.lon, selected.lat]]), { padding: mapPadding(map), duration: 1200 })
+      return drawRoute(map, selected.line, drawMs, 300)
     }
-    return cancel
+    const cam = map.cameraForBounds(bounds([...selected.line, [selected.lon, selected.lat]]), { padding: mapPadding(map) })
+    if (cam) map.flyTo({ ...cam, duration: 1500, curve: 1.3, essential: true })
+    return drawRoute(map, selected.line, drawMs, 700)
   }, [map, sel])
 
   // Scale bar: pick a round distance that is 70–180px wide at this zoom.
@@ -315,9 +330,10 @@ export function MapSection() {
         <div className="flex min-w-0 flex-col gap-3 px-2 md:grid md:grid-cols-2 xl:flex xl:px-0">
           <div data-reveal="right" className="relative h-[292px] overflow-hidden bg-pink shadow-[inset_0_0_0_4px_#fff]" aria-live="polite">
             {selected.photo && (
-              <img
+              <Picture
                 key={selected.photo}
                 src={selected.photo}
+                sizes="(min-width: 1280px) 210px, 48vw"
                 alt=""
                 loading="lazy"
                 className="absolute inset-y-1 right-1 w-[48%] animate-[fade-in_.5s_ease-out] object-cover [mask-image:linear-gradient(90deg,transparent,#000_45%)]"

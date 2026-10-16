@@ -6,6 +6,7 @@ import { loadRsvps, rsvpOpen, toggleRsvp, useRsvp } from '~/lib/rsvp'
 import { useCountdown } from '~/lib/useCountdown'
 import { PadPrompt, Place } from '../ui'
 import { MENU_ITEM, Modal, MoreMenu, ShareButton, openOnDesktop } from './Modal'
+import { Picture } from '../Picture'
 
 /** Event details in a centred dialog, opened from an event card or ?e=<id>. */
 export function EventQuickView({ event: e, onClose }: { event: CrewEvent; onClose: () => void }) {
@@ -50,7 +51,7 @@ export function EventQuickView({ event: e, onClose }: { event: CrewEvent; onClos
         </>
       }
     >
-      {e.image && <img src={e.image} alt="" className="aspect-[16/7] w-full object-cover" />}
+      {e.image && <Picture src={e.image} sizes="(min-width: 768px) 820px, 100vw" alt="" className="aspect-[16/7] w-full object-cover" />}
       <div className="flex flex-col gap-4 px-5 pt-5 pb-5 md:px-8 md:pt-7">
         <div className="pr-10">
           <div className="text-sm font-bold tracking-[.14em] uppercase" style={{ color: accent }}>
