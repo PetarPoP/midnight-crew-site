@@ -23,6 +23,29 @@ const LABELS = [
   { t: 'SRBIJA', lon: 19.32, lat: 44.6, rot: 0, size: 24 },
 ]
 
+// Towns drawn as plain map labels (the crew's destinations get pins instead).
+export const TOWNS: [string, number, number][] = [
+  ['Glamoč', 16.85, 44.05],
+  ['Kupres', 17.28, 43.99],
+  ['Šuica', 17.18, 43.83],
+  ['Posušje', 17.33, 43.47],
+  ['Sinj', 16.64, 43.7],
+  ['Knin', 16.2, 44.04],
+  ['Bugojno', 17.45, 44.06],
+  ['Jajce', 17.27, 44.34],
+  ['Drvar', 16.38, 44.37],
+  ['Široki Brijeg', 17.59, 43.38],
+  ['Makarska', 17.02, 43.3],
+  ['Konjic', 17.96, 43.65],
+  ['Zenica', 17.91, 44.2],
+  ['Banja Luka', 17.19, 44.77],
+  ['Bihać', 15.87, 44.81],
+  ['Šibenik', 15.89, 43.73],
+  ['Zadar', 15.23, 44.12],
+  ['Ljubuški', 17.55, 43.2],
+  ['Travnik', 17.67, 44.23],
+]
+
 /** The static basemap (sea, coast, terrain, roads, borders, labels). */
 export const BaseMap = memo(function BaseMap() {
   const { W, H } = MAP
@@ -30,16 +53,18 @@ export const BaseMap = memo(function BaseMap() {
     <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} className="absolute inset-0 block" aria-hidden="true">
       <defs>
         <linearGradient id="mcSea" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#8fd3ec" />
-          <stop offset="1" stopColor="#4f9fcc" />
+          <stop offset="0" stopColor="#123d5c" />
+          <stop offset="1" stopColor="#0c2c44" />
         </linearGradient>
-        <pattern id="mcWave" width="36" height="24" patternUnits="userSpaceOnUse">
-          <path d="M0,12 Q9,3 18,12 T36,12" fill="none" stroke="#fff" strokeOpacity=".22" strokeWidth="2" />
-        </pattern>
-        <radialGradient id="mcGreen">
-          <stop offset="0" stopColor="#aebf86" stopOpacity=".75" />
-          <stop offset=".55" stopColor="#aebf86" stopOpacity=".45" />
-          <stop offset="1" stopColor="#aebf86" stopOpacity="0" />
+        {/* Mountains: lit ridge plus a shadow side, like a hillshade */}
+        <radialGradient id="mcHill">
+          <stop offset="0" stopColor="#5a4b74" stopOpacity=".55" />
+          <stop offset=".6" stopColor="#3a2f50" stopOpacity=".35" />
+          <stop offset="1" stopColor="#3a2f50" stopOpacity="0" />
+        </radialGradient>
+        <radialGradient id="mcShade">
+          <stop offset="0" stopColor="#07050b" stopOpacity=".7" />
+          <stop offset="1" stopColor="#07050b" stopOpacity="0" />
         </radialGradient>
         <clipPath id="mcLand">
           <path d={MAP.land} />
@@ -48,30 +73,31 @@ export const BaseMap = memo(function BaseMap() {
 
       {/* Sea */}
       <rect width={W} height={H} fill="url(#mcSea)" />
-      <rect width={W} height={H} fill="url(#mcWave)" />
 
       {/* Shallow water along the coast, then land */}
-      <g fill="none" stroke="#bfeaf7" strokeLinejoin="round">
-        <path d={MAP.land} strokeWidth="44" strokeOpacity=".22" />
-        <path d={MAP.land} strokeWidth="26" strokeOpacity=".3" />
-        <path d={MAP.land} strokeWidth="12" strokeOpacity=".45" />
+      <g fill="none" stroke="#1d5a80" strokeLinejoin="round">
+        <path d={MAP.land} strokeWidth="30" strokeOpacity=".18" />
+        <path d={MAP.land} strokeWidth="12" strokeOpacity=".3" />
       </g>
-      <path d={MAP.land} fill="#efe6c6" stroke="#b9ab84" strokeWidth="2" strokeLinejoin="round" />
+      <path d={MAP.land} fill="#1b1626" stroke="#2f5a78" strokeWidth="1.5" strokeLinejoin="round" />
       <g clipPath="url(#mcLand)">
         {GREEN.map(([lon, lat, rx, ry, rot]) => {
           const [x, y] = project(lon, lat)
           return (
-            <ellipse key={lon} cx={x} cy={y} rx={rx * 1.6} ry={ry * 1.8} transform={`rotate(${rot} ${x} ${y})`} fill="url(#mcGreen)" />
+            <g key={lon} transform={`rotate(${rot} ${x} ${y})`}>
+              <ellipse cx={x + 24} cy={y + 30} rx={rx * 1.6} ry={ry * 1.8} fill="url(#mcShade)" />
+              <ellipse cx={x} cy={y} rx={rx * 1.6} ry={ry * 1.8} fill="url(#mcHill)" />
+            </g>
           )
         })}
       </g>
 
       {/* Water on land */}
-      <path d={MAP.rivers} fill="none" stroke="#7cc4e4" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-      <path d={MAP.lakes} fill="#7cc4e4" stroke="#fff" strokeOpacity=".7" strokeWidth="1.2" />
+      <path d={MAP.rivers} fill="none" stroke="#1d5a80" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+      <path d={MAP.lakes} fill="#0f3550" stroke="#1d5a80" strokeWidth="1.2" />
 
       {/* Grid */}
-      <g stroke="#fff" strokeOpacity=".28" strokeWidth="1.2">
+      <g stroke="#fff" strokeOpacity=".05" strokeWidth="1.2">
         {MAP.gridX.map((x) => (
           <line key={x} x1={x} y1={0} x2={x} y2={H} />
         ))}
@@ -80,12 +106,12 @@ export const BaseMap = memo(function BaseMap() {
         ))}
       </g>
       <g
-        fill="#fff"
-        fillOpacity=".85"
+        fill="#e9e4f5"
+        fillOpacity=".4"
         fontSize="22"
         fontWeight="700"
         fontFamily="Barlow Condensed, sans-serif"
-        style={{ paintOrder: 'stroke', stroke: '#2a6b94', strokeWidth: 4 }}
+        style={{ paintOrder: 'stroke', stroke: '#120e1a', strokeWidth: 4 }}
       >
         {MAP.gridX.map((x, i) => (
           <text key={x} x={x} y={30} textAnchor="middle">
@@ -100,14 +126,12 @@ export const BaseMap = memo(function BaseMap() {
       </g>
 
       {/* Borders */}
-      <path d={MAP.borders} fill="none" stroke="#8d7f63" strokeOpacity=".8" strokeDasharray="10 7" strokeWidth="2" />
+      <path d={MAP.borders} fill="none" stroke="#5b5170" strokeOpacity=".9" strokeDasharray="10 7" strokeWidth="2" />
 
       {/* Roads: casing, then fill */}
       <g fill="none" strokeLinecap="round" strokeLinejoin="round">
-        <path d={MAP.roads} stroke="#8d7f63" strokeOpacity=".75" strokeWidth="4" />
-        <path d={MAP.motorways} stroke="#9a6a1a" strokeWidth="6" />
-        <path d={MAP.roads} stroke="#fffaf0" strokeWidth="2.4" />
-        <path d={MAP.motorways} stroke="#ffc83a" strokeWidth="3.6" />
+        <path d={MAP.roads} stroke="#c9c2d8" strokeOpacity=".75" strokeWidth="1.8" />
+        <path d={MAP.motorways} stroke="#f2b632" strokeWidth="3" />
       </g>
 
       {/* Region labels */}
@@ -121,14 +145,9 @@ export const BaseMap = memo(function BaseMap() {
               y={y}
               fontSize={l.size}
               transform={`rotate(${l.rot} ${x} ${y})`}
-              fill={l.sea ? '#fff' : '#6e6340'}
-              fillOpacity={l.sea ? 0.95 : 0.7}
-              style={{
-                paintOrder: 'stroke',
-                stroke: l.sea ? '#2f7aa6' : '#fff',
-                strokeWidth: 8,
-                strokeOpacity: 0.55,
-              }}
+              fill={l.sea ? '#4f86a8' : '#e9e4f5'}
+              fillOpacity={l.sea ? 0.7 : 0.28}
+              style={{ paintOrder: 'stroke', stroke: '#120e1a', strokeWidth: 6, strokeOpacity: 0.6 }}
             >
               {l.t}
             </text>

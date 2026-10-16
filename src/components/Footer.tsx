@@ -136,7 +136,10 @@ export function Footer() {
                 </a>
               </span>
             ))}{' '}
-            / Unsplash
+            / Unsplash · Karta: ©{' '}
+            <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer" className="hover:text-white">
+              OpenStreetMap
+            </a>
           </span>
           <button
             type="button"

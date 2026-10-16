@@ -3,7 +3,7 @@ import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from
 import { FILTERS, KIND_COLOR, LIVNO, MAX_KM, PLACES, TOTAL_KM, eventsAt, formatKm, placeBadge, type FilterKey } from '~/lib/data'
 import { MAP, project } from '~/lib/mapData'
 import { useCountUp } from '~/lib/useCountUp'
-import { BaseMap } from './map/BaseMap'
+import { BaseMap, TOWNS } from './map/BaseMap'
 import { usePanZoom } from './map/usePanZoom'
 import { KeyHint, PadPrompt, SectionHead } from './ui'
 
@@ -14,6 +14,7 @@ const LEGEND = [
 ]
 
 const [LIVNO_X, LIVNO_Y] = project(LIVNO.lon, LIVNO.lat)
+const TOWN_XY = TOWNS.map(([name, lon, lat]) => ({ name, xy: project(lon, lat) }))
 // Opening frame: the region around Livno (everything except Zagreb).
 const NEAR = PLACES.filter((p) => p.name !== 'Zagreb')
 const START_BOX = [
@@ -136,7 +137,7 @@ export function MapSection() {
             } else if (e.key === '+' || e.key === '=') map.zoomBy(1.4)
             else if (e.key === '-') map.zoomBy(1 / 1.4)
           }}
-          className={`map-corners relative aspect-[860/640] w-full touch-pan-y overflow-hidden bg-[#4f9fcc] shadow-[0_0_0_4px_#fff] outline-none select-none [--pin:.6] focus-visible:shadow-[0_0_0_4px_var(--color-lime)] sm:[--pin:.8] md:touch-none xl:aspect-auto xl:h-[clamp(640px,46vw,760px)] xl:w-full xl:[--pin:1] ${
+          className={`map-corners relative aspect-[860/640] w-full touch-pan-y overflow-hidden bg-[#0c2c44] shadow-[0_0_0_4px_#fff] outline-none select-none [--pin:.6] focus-visible:shadow-[0_0_0_4px_var(--color-lime)] sm:[--pin:.8] md:touch-none xl:aspect-auto xl:h-[clamp(640px,46vw,760px)] xl:w-full xl:[--pin:1] ${
             map.moving ? 'cursor-grabbing' : 'cursor-grab'
           }`}
         >
@@ -158,9 +159,8 @@ export function MapSection() {
                 strokeLinejoin="round"
                 style={{ '--dur': drawDur } as CSSProperties}
               >
-                <path d={selected.route} pathLength={1} className="route-draw" stroke="#14101c" opacity=".55" data-world-sw="12" strokeWidth={12 / map.first.s} />
-                <path d={selected.route} pathLength={1} className="route-draw" stroke="#fff" data-world-sw="10" strokeWidth={10 / map.first.s} />
-                <path d={selected.route} pathLength={1} className="route-draw" stroke="var(--color-pink)" data-world-sw="7" strokeWidth={7 / map.first.s} />
+                <path d={selected.route} pathLength={1} className="route-draw" stroke="#ff18a0" opacity=".3" data-world-sw="16" strokeWidth={16 / map.first.s} />
+                <path d={selected.route} pathLength={1} className="route-draw" stroke="#ff4fb8" data-world-sw="6" strokeWidth={6 / map.first.s} />
                 <g className="route-after">
                   <path
                     d={selected.route}
@@ -178,6 +178,16 @@ export function MapSection() {
                 </circle>
               </g>
             </svg>
+
+            {/* Town names: same size on screen at every zoom */}
+            {TOWN_XY.map(({ name, xy: [x, y] }) => (
+              <div key={name} className="absolute top-0 left-0 z-[1]" data-wx={x} data-wy={y} style={{ ...map.at(x, y), ...marker() }}>
+                <div className="size-[7px] rounded-full bg-[#c9c2d8]" />
+                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 text-[15px] font-bold tracking-[.12em] whitespace-nowrap text-[#e9e4f5] uppercase [text-shadow:0_0_3px_#120e1a,0_0_6px_#120e1a]">
+                  {name}
+                </div>
+              </div>
+            ))}
 
             {/* Home base: Livno */}
             <div className="pointer-events-none absolute top-0 left-0 z-[6]" data-wx={LIVNO_X} data-wy={LIVNO_Y} style={{ ...map.at(LIVNO_X, LIVNO_Y), ...marker() }}>
@@ -228,7 +238,7 @@ export function MapSection() {
             })}
           </div>
 
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(120%_100%_at_50%_50%,transparent_60%,rgba(20,16,28,.38))]" />
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(120%_100%_at_50%_50%,transparent_55%,rgba(10,8,16,.75))]" />
 
           {/* Filter tabs */}
           <div data-map-ui className="absolute top-5 left-[22px] z-30 hidden items-center gap-2 text-xl font-extrabold uppercase italic sm:flex">

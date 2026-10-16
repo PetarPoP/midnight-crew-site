@@ -156,17 +156,6 @@ export function Map3DCard({ event: e }: { event: CrewEvent }) {
           </div>
         </div>
       </Link>
-      {/* Map data credit (required by the OpenStreetMap licence) */}
-      <div className="absolute right-3 bottom-1.5 z-[2] font-sans text-[10px] text-white/45">
-        ©{' '}
-        <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer" className="hover:text-white">
-          OpenStreetMap
-        </a>{' '}
-        ·{' '}
-        <a href="https://openfreemap.org" target="_blank" rel="noopener noreferrer" className="hover:text-white">
-          OpenFreeMap
-        </a>
-      </div>
     </div>
   )
 }
