@@ -12,6 +12,7 @@ import { useGameKeys } from '~/lib/useGameKeys'
 import { RevealObserver } from '~/components/RevealObserver'
 import { CartToast } from '~/components/CartToast'
 import { QuickViews } from '~/components/overlay/QuickViews'
+import { GarageDoor } from '~/components/GarageDoor'
 import { eventById, productById } from '~/lib/data'
 import { ogMeta } from '~/lib/og'
 
@@ -79,6 +80,7 @@ function RootComponent() {
         <Outlet />
         <QuickViews />
         <CartToast />
+        <GarageDoor />
       </CartProvider>
       <RevealObserver />
     </RootDocument>

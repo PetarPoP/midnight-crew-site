@@ -2,6 +2,7 @@ import { Place } from './ui'
 import { ArrowRight, ArrowUp, Diamond } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
 import type { ReactNode } from 'react'
+import { useEnterGarage } from '~/lib/garageDoor'
 import { EVENTS, INSTAGRAM_URL, PLACES, SETTINGS, TOTAL_KM, formatKm, upcomingEvents } from '~/lib/data'
 
 const CREDITS = [
@@ -13,7 +14,7 @@ const NAV = [
   { label: 'Kampanja', to: '/', hash: 'top' },
   { label: 'Galerija', to: '/', hash: 'galerija' },
   { label: 'Karta', to: '/', hash: 'karta' },
-  { label: 'Garaža', to: '/', hash: 'garaza' },
+  { label: 'Garaža', to: '/garaza', hash: undefined },
   { label: 'Događaji', to: '/', hash: 'dogadaji' },
   { label: 'Shop', to: '/shop', hash: undefined },
 ] as const
@@ -22,6 +23,7 @@ const TICKER = ['Midnight Crew', 'Livno', 'Noćni meetovi', 'Cruise', 'BiH · HR
 
 export function Footer() {
   const [next] = upcomingEvents()
+  const enterGarage = useEnterGarage()
   const year = new Date().getFullYear()
 
   return (
@@ -72,6 +74,11 @@ export function Footer() {
                 <Link
                   to={n.to}
                   hash={n.hash}
+                  onClick={(e) => {
+                    if (n.to !== '/garaza') return
+                    e.preventDefault()
+                    enterGarage()
+                  }}
                   className="group flex items-center gap-2 py-1 text-2xl font-bold text-soft uppercase italic no-underline transition-colors hover:text-white"
                 >
                   {n.label}

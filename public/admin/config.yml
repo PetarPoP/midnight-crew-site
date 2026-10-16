@@ -132,6 +132,12 @@ collections:
           - { label: 4x4, value: awd }
       - { name: note, label: Kratak opis, widget: text, required: false }
       - { name: image, label: Slika auta (PNG bez pozadine), widget: image, required: false }
+      - name: photos
+        label: Fotke (galerija na stranici auta)
+        label_singular: Fotka
+        widget: list
+        required: false
+        field: { name: photo, label: Fotka, widget: image }
       - { name: order, label: Redoslijed, widget: number, value_type: int, default: 10 }
 
   - name: settings

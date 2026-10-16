@@ -11,8 +11,10 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CalendarDoticsRouteImport } from './routes/calendar[.]ics'
+import { Route as GarazaRouteImport } from './routes/garaza'
 import { Route as ShopRouteImport } from './routes/shop'
 import { Route as ApiOrdersRouteImport } from './routes/api/orders'
+import { Route as GarazaCarIdRouteImport } from './routes/garaza_.$carId'
 import { Route as ShopProductIdRouteImport } from './routes/shop_.$productId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -25,6 +27,11 @@ const CalendarDoticsRoute = CalendarDoticsRouteImport.update({
   path: '/calendar.ics',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GarazaRoute = GarazaRouteImport.update({
+  id: '/garaza',
+  path: '/garaza',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ShopRoute = ShopRouteImport.update({
   id: '/shop',
   path: '/shop',
@@ -33,6 +40,11 @@ const ShopRoute = ShopRouteImport.update({
 const ApiOrdersRoute = ApiOrdersRouteImport.update({
   id: '/api/orders',
   path: '/api/orders',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GarazaCarIdRoute = GarazaCarIdRouteImport.update({
+  id: '/garaza_/$carId',
+  path: '/garaza/$carId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ShopProductIdRoute = ShopProductIdRouteImport.update({
@@ -44,45 +56,68 @@ const ShopProductIdRoute = ShopProductIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/calendar.ics': typeof CalendarDoticsRoute
+  '/garaza': typeof GarazaRoute
   '/shop': typeof ShopRoute
   '/api/orders': typeof ApiOrdersRoute
+  '/garaza/$carId': typeof GarazaCarIdRoute
   '/shop/$productId': typeof ShopProductIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/calendar.ics': typeof CalendarDoticsRoute
+  '/garaza': typeof GarazaRoute
   '/shop': typeof ShopRoute
   '/api/orders': typeof ApiOrdersRoute
+  '/garaza/$carId': typeof GarazaCarIdRoute
   '/shop/$productId': typeof ShopProductIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/calendar.ics': typeof CalendarDoticsRoute
+  '/garaza': typeof GarazaRoute
   '/shop': typeof ShopRoute
   '/api/orders': typeof ApiOrdersRoute
+  '/garaza_/$carId': typeof GarazaCarIdRoute
   '/shop_/$productId': typeof ShopProductIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/calendar.ics' | '/shop' | '/api/orders' | '/shop/$productId'
+    | '/'
+    | '/calendar.ics'
+    | '/garaza'
+    | '/shop'
+    | '/api/orders'
+    | '/garaza/$carId'
+    | '/shop/$productId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/calendar.ics' | '/shop' | '/api/orders' | '/shop/$productId'
+  to:
+    | '/'
+    | '/calendar.ics'
+    | '/garaza'
+    | '/shop'
+    | '/api/orders'
+    | '/garaza/$carId'
+    | '/shop/$productId'
   id:
     | '__root__'
     | '/'
     | '/calendar.ics'
+    | '/garaza'
     | '/shop'
     | '/api/orders'
+    | '/garaza_/$carId'
     | '/shop_/$productId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CalendarDoticsRoute: typeof CalendarDoticsRoute
+  GarazaRoute: typeof GarazaRoute
   ShopRoute: typeof ShopRoute
   ApiOrdersRoute: typeof ApiOrdersRoute
+  GarazaCarIdRoute: typeof GarazaCarIdRoute
   ShopProductIdRoute: typeof ShopProductIdRoute
 }
 
@@ -102,6 +137,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CalendarDoticsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/garaza': {
+      id: '/garaza'
+      path: '/garaza'
+      fullPath: '/garaza'
+      preLoaderRoute: typeof GarazaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/shop': {
       id: '/shop'
       path: '/shop'
@@ -114,6 +156,13 @@ declare module '@tanstack/react-router' {
       path: '/api/orders'
       fullPath: '/api/orders'
       preLoaderRoute: typeof ApiOrdersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/garaza_/$carId': {
+      id: '/garaza_/$carId'
+      path: '/garaza/$carId'
+      fullPath: '/garaza/$carId'
+      preLoaderRoute: typeof GarazaCarIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/shop_/$productId': {
@@ -129,8 +178,10 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CalendarDoticsRoute: CalendarDoticsRoute,
+  GarazaRoute: GarazaRoute,
   ShopRoute: ShopRoute,
   ApiOrdersRoute: ApiOrdersRoute,
+  GarazaCarIdRoute: GarazaCarIdRoute,
   ShopProductIdRoute: ShopProductIdRoute,
 }
 export const routeTree = rootRouteImport

@@ -1,13 +1,15 @@
-import { ArrowLeft, ArrowRight, Camera } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Camera, Warehouse } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
 import { JoinModal } from './JoinModal'
-import { GARAGE, crewLevel, type Car } from '~/lib/data'
+import { DRIVE_LABEL as DRIVE, GARAGE, crewLevel, type Car } from '~/lib/data'
+import { useEnterGarage } from '~/lib/garageDoor'
 import { isTyping } from '~/lib/useGameKeys'
 import { KeyHint, PadPrompt, SectionHead } from './ui'
 import { Picture } from './Picture'
 
-const DRIVE = { rwd: 'Zadnji', fwd: 'Prednji', awd: '4×4' } as const
+/** How many cars the home page shows; the rest are on /garaza. */
+const FEATURED = 8
 
 /** Car-select screen in the style of a racing game's garage. */
 export function GarageSection() {
@@ -17,7 +19,10 @@ export function GarageSection() {
   const swipe = useRef<{ x: number; y: number } | null>(null)
   const [dir, setDir] = useState(1)
   const ref = useRef<HTMLElement>(null)
-  const n = GARAGE.length
+  const enterGarage = useEnterGarage()
+  const total = GARAGE.length
+  const featured = GARAGE.slice(0, FEATURED)
+  const n = featured.length
   const lvl = crewLevel()
 
   const go = useCallback(
@@ -52,11 +57,11 @@ export function GarageSection() {
     }
   }, [go, n])
 
-  const car = GARAGE[i]
+  const car = featured[i]
 
   return (
     <section ref={ref} aria-labelledby="garaza-title">
-      <SectionHead id="garaza" title="Garaža" meta={`${n} ${n === 1 ? 'AUTO' : 'AUTA'} · CREW LVL ${lvl.level}`} />
+      <SectionHead id="garaza" title="Garaža" meta={`${total} ${total === 1 ? 'AUTO' : 'AUTA'} · CREW LVL ${lvl.level}`} />
       <span id="garaza-title" className="sr-only">
         Auti ekipe
       </span>
@@ -154,7 +159,7 @@ export function GarageSection() {
 
           {/* Car picker */}
           <ul className="mt-3 flex gap-2 overflow-x-auto pb-2" aria-label="Svi auti">
-            {GARAGE.map((c, k) => (
+            {featured.map((c, k) => (
               <li key={c.id} className="shrink-0">
                 <button
                   type="button"
@@ -177,6 +182,18 @@ export function GarageSection() {
             <li className="shrink-0">
               <button
                 type="button"
+                onClick={() => enterGarage()}
+                className="flex h-[84px] w-[132px] cursor-pointer -skew-x-6 items-center justify-center bg-pink text-center text-sm font-extrabold tracking-wide text-white uppercase italic transition-[background-color,translate] duration-200 hover:-translate-y-0.5 hover:bg-pink-deep focus-visible:outline-2 focus-visible:outline-white"
+              >
+                <span className="flex skew-x-6 flex-col items-center gap-1">
+                  <Warehouse size={22} strokeWidth={2.5} aria-hidden="true" />
+                  Cijela garaža
+                </span>
+              </button>
+            </li>
+            <li className="shrink-0">
+              <button
+                type="button"
                 onClick={() => setJoin(true)}
                 className="flex cursor-pointer h-[84px] w-[132px] -skew-x-6 items-center justify-center border-2 border-dashed border-white/25 text-center text-sm font-extrabold tracking-wide text-muted uppercase italic transition-colors hover:border-white hover:text-white"
               >
@@ -188,6 +205,16 @@ export function GarageSection() {
               </button>
             </li>
           </ul>
+          <div className="mt-4 flex justify-end">
+            <button
+              type="button"
+              onClick={() => enterGarage()}
+              className="fh-wipe flex cursor-pointer items-center gap-2 px-4 py-2 text-xl font-extrabold uppercase italic md:text-2xl"
+            >
+              Uđi u garažu · {total} {total === 1 ? 'auto' : 'auta'}
+              <ArrowRight size={22} strokeWidth={3} aria-hidden="true" />
+            </button>
+          </div>
         </div>
       )}
       {join && createPortal(<JoinModal onClose={() => setJoin(false)} />, document.body)}
@@ -195,7 +222,7 @@ export function GarageSection() {
   )
 }
 
-function Stat({ label, value, ratio }: { label: string; value: string; ratio: number }) {
+export function Stat({ label, value, ratio }: { label: string; value: string; ratio: number }) {
   return (
     <div className="grid grid-cols-[84px_minmax(0,1fr)_90px] items-center gap-3 text-sm font-bold tracking-[.12em] uppercase">
       <span className="text-muted">{label}</span>
@@ -210,9 +237,8 @@ function Stat({ label, value, ratio }: { label: string; value: string; ratio: nu
   )
 }
 
-/** The car cut-out (transparent PNG), or a silhouette until one is uploaded. */
 /** Forza-style showroom behind the car: back wall with light panels, ceiling light bars, polished floor. */
-function Showroom({ year }: { year: number }) {
+export function Showroom({ year }: { year: number }) {
   return (
     <div aria-hidden="true" className="garage-showroom pointer-events-none absolute -z-[1] -inset-y-[6%] inset-x-0 overflow-hidden">
       <div className="garage-ceiling" />
@@ -224,7 +250,8 @@ function Showroom({ year }: { year: number }) {
   )
 }
 
-function CarImage({ car, small = false }: { car: Car; small?: boolean }) {
+/** The car cut-out (transparent PNG), or a silhouette until one is uploaded. */
+export function CarImage({ car, small = false }: { car: Car; small?: boolean }) {
   if (car.image) {
     return (
       <Picture

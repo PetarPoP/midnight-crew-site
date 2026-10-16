@@ -135,9 +135,11 @@ export type Car = {
   note: string
   /** Transparent PNG of the car, or empty for the silhouette placeholder. */
   image: string
+  /** Gallery photos for the car's own page (/garaza/<id>). */
+  photos: string[]
 }
 
-type CarFile = Omit<Car, 'id'> & { order?: number }
+type CarFile = Omit<Car, 'id' | 'photos'> & { photos?: string[]; order?: number }
 
 export const GARAGE: Car[] = byFile(import.meta.glob<{ default: CarFile }>('../content/garage/*.json', { eager: true }))
   .sort((a, b) => (a.order ?? 99) - (b.order ?? 99) || a.car.localeCompare(b.car))
@@ -146,8 +148,13 @@ export const GARAGE: Car[] = byFile(import.meta.glob<{ default: CarFile }>('../c
     instagram: (c.instagram ?? '').replace(/^@/, '').trim(),
     note: c.note ?? '',
     image: c.image ?? '',
+    photos: (c.photos ?? []).filter(Boolean),
     drivetrain: c.drivetrain ?? 'rwd',
   }))
+
+export const carById = (id: string) => GARAGE.find((c) => c.id === id)
+
+export const DRIVE_LABEL: Record<Car['drivetrain'], string> = { rwd: 'Zadnji', fwd: 'Prednji', awd: '4×4' }
 
 /** Crew level: grows with distance, meets, crew size and places visited. */
 export const CREW_XP_PARTS = [

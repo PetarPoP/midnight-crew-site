@@ -38,7 +38,7 @@ Sadržaj je u `src/content/` (JSON datoteke), pa se može uređivati i ručno.
 
 ## Struktura
 
-- `src/routes/` stranice (`__root.tsx` je HTML okvir, `index.tsx` naslovnica, `shop.tsx` shop s košaricom, `shop_.$productId.tsx` stranica artikla)
+- `src/routes/` stranice (`__root.tsx` je HTML okvir, `index.tsx` naslovnica, `shop.tsx` shop s košaricom, `shop_.$productId.tsx` stranica artikla, `garaza.tsx` svi auti, `garaza_.$carId.tsx` stranica auta s fotkama)
 - `src/components/` sekcije: `Header`, `Hero`, `MapSection`, `EventsSection`, `ShopSection`, `Footer`
 - `src/lib/cart.tsx` košarica (pamti se u pregledniku)
 - `src/content/` sadržaj koji se uređuje u CMS-u: `events/`, `products/`, `places/`, `settings.json`
@@ -55,7 +55,8 @@ Sadržaj je u `src/content/` (JSON datoteke), pa se može uređivati i ručno.
 
 ## Garaža, Dolazim, kalendar i narudžbe
 
-- **Garaža**: auta ekipe dodaješ u CMS-u (Garaža): ime auta, vlasnik, Instagram, snaga i fotka kao prozirni PNG (auto bez pozadine).
+- **Garaža**: auta ekipe dodaješ u CMS-u (Garaža): ime auta, vlasnik, Instagram, snaga, fotka kao prozirni PNG (auto bez pozadine) i fotke za galeriju. Naslovnica pokazuje prvih 8 auta (po polju Redoslijed); svi auti su na `/garaza` (traženje, pogon, poredak, po 24 auta), a svaki auto ima svoju stranicu `/garaza/<id>` s fotkama.
+- **Garažna vrata**: kad se u garažu uđe s druge stranice (izbornik, podnožje, gumb na naslovnici), vrata se spuste, garaža se učita iza njih i vrata se dignu (`src/lib/garageDoor.ts`, `src/components/GarageDoor.tsx`). Unutar garaže (popis ↔ auto) nema vrata. Ako korisnik traži manje animacija, vrata se samo pojave i nestanu.
 - **Dolazim**: svaki događaj s datumom i mjestom ima gumb "Dolazim"; prijave se spremaju u Cloudflare D1 bazu (`DB` u `wrangler.jsonc`, tablice se same naprave).
 - **Javi se (garaža)**: forma sprema poruke u D1 i šalje mail preko [Resenda](https://resend.com) (besplatan račun): secret `RESEND_API_KEY` i varijabla `MAIL_TO` (mail koji prima poruke; s `onboarding@resend.dev` pošiljateljem radi samo na mail kojim si se registrirao). Isto stiže i na Telegram ako je postavljen.
 - **Kalendar**: `/calendar.ics` je pretplatni kalendar svih meetova ("Sinkroniziraj kalendar"), a svaki događaj ima i "U kalendar" (.ics datoteka).

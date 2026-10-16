@@ -2,6 +2,7 @@ import { Link, useNavigate, useRouterState } from '@tanstack/react-router'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useCart } from '~/lib/cart'
 import { crewLevel } from '~/lib/data'
+import { useEnterGarage } from '~/lib/garageDoor'
 import { isTyping } from '~/lib/useGameKeys'
 import { KeyHint } from './ui'
 
@@ -9,7 +10,7 @@ const TABS = [
   { label: 'Kampanja', to: '/', hash: 'top' },
   { label: 'Galerija', to: '/', hash: 'galerija' },
   { label: 'Bili smo', to: '/', hash: 'karta' },
-  { label: 'Garaža', to: '/', hash: 'garaza' },
+  { label: 'Garaža', to: '/garaza', hash: undefined },
   { label: 'Shop', to: '/shop', hash: undefined },
 ] as const
 
@@ -17,9 +18,11 @@ export function Header({ overlay = false }: { overlay?: boolean }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname })
   const navigate = useNavigate()
   const { count } = useCart()
-  const onShop = pathname.startsWith('/shop')
+  const enterGarage = useEnterGarage()
   const [homeTab, setHomeTab] = useState(0)
-  const tab = onShop ? TABS.length - 1 : homeTab
+  // Tabs with their own page (Garaža, Shop) light up on that page and below it.
+  const pageTab = TABS.findIndex((t) => t.to !== '/' && (pathname === t.to || pathname.startsWith(`${t.to}/`)))
+  const tab = pageTab >= 0 ? pageTab : homeTab
   const lvl = crewLevel()
   const [compact, setCompact] = useState(false)
   const headerRef = useRef<HTMLElement>(null)
@@ -48,7 +51,9 @@ export function Header({ overlay = false }: { overlay?: boolean }) {
     const next = (i + TABS.length) % TABS.length
     const t = TABS[next]
     if (t.to === '/') setHomeTab(next)
-    if (t.to === pathname) {
+    if (t.to === '/garaza') {
+      enterGarage()
+    } else if (t.to === pathname) {
       const el = t.hash ? document.getElementById(t.hash) : null
       if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
       else window.scrollTo({ top: 0, behavior: 'smooth' })
