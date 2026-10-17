@@ -126,7 +126,11 @@ for (const p of data.products) {
 }
 const places = []
 for (const p of data.places) {
-  places.push({ slug: slugify(p.name), doc: { name: p.name, lon: p.lon, lat: p.lat, kind: p.kind, photo: await photo(p.photo) } })
+  const location = p.location || p.name
+  places.push({
+    slug: slugify(`${p.name} ${location} ${p.year ?? ''}`),
+    doc: { name: p.name, location, year: p.year ?? 0, lon: p.lon, lat: p.lat, kind: p.kind, photo: await photo(p.photo) },
+  })
 }
 const garage = []
 for (const c of data.garage) {

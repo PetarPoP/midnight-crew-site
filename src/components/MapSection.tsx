@@ -14,7 +14,10 @@ const LEGEND = [
 ]
 
 // Opening frame: the region around Livno (everything except Zagreb).
-const NEAR = [...PLACES.filter((p) => p.name !== 'Zagreb'), LIVNO]
+const NEAR = [...PLACES.filter((p) => p.town !== 'Zagreb'), LIVNO]
+/** One pin per town; several meets in one town share it. */
+const PINS = PLACES.filter((p, i) => PLACES.findIndex((q) => q.town === p.town) === i)
+const FIRST = (PLACES.find((p) => p.town === 'Split') ?? PLACES[0])?.id ?? ''
 const START_BOX = bounds(NEAR.map((p) => [p.lon, p.lat]))
 
 function bounds(pts: number[][]): LngLatBoundsLike {
@@ -88,15 +91,15 @@ function drawRoute(map: MlMap, line: Line, ms: number, delay: number) {
 }
 
 export function MapSection() {
-  const [sel, setSelRaw] = useState('Split')
+  const [sel, setSelRaw] = useState(FIRST)
   const [playing, setPlaying] = useState(false)
   const [filter, setFilter] = useState<FilterKey>('sve')
   const box = useRef<HTMLDivElement>(null)
   const { map, lib, view } = useOsmMap(box, START_BOX)
   const firstSel = useRef(true)
 
-  const selected = PLACES.find((p) => p.name === sel) ?? PLACES[0]
-  const selEvents = eventsAt(sel)
+  const selected = PLACES.find((p) => p.id === sel) ?? PLACES[0]
+  const selEvents = eventsAt(selected.town)
   const selEvent = selEvents.length
     ? `${selEvents[0].date} · ${selEvents[0].title} · ${selEvents[0].time}`
     : 'Bili smo ovdje, bez najavljenog događaja'
@@ -104,31 +107,31 @@ export function MapSection() {
   const fi = FILTERS.findIndex((f) => f.key === filter)
   const cycleFilter = (d: number) => setFilter(FILTERS[(fi + d + FILTERS.length) % FILTERS.length].key)
   // Picking a place by hand stops the replay.
-  const setSel = (name: string) => {
+  const setSel = (id: string) => {
     setPlaying(false)
-    setSelRaw(name)
+    setSelRaw(id)
   }
-  const nextPlace = () => setSel(rows[(rows.findIndex((r) => r.name === sel) + 1) % rows.length].name)
+  const nextPlace = () => setSel(rows[(rows.findIndex((r) => r.id === sel) + 1) % rows.length].id)
   const badge = placeBadge(selected.km)
 
   // Replay: drive to every destination in order, nearest first.
   useEffect(() => {
     if (!playing) return
-    const at = rows.findIndex((r) => r.name === sel)
+    const at = rows.findIndex((r) => r.id === sel)
     const last = at === rows.length - 1
-    const id = setTimeout(() => (last ? setPlaying(false) : setSelRaw(rows[at + 1].name)), last ? 3000 : 4200)
+    const id = setTimeout(() => (last ? setPlaying(false) : setSelRaw(rows[at + 1].id)), last ? 3000 : 4200)
     return () => clearTimeout(id)
   }, [playing, sel])
   const startReplay = () => {
     if (playing) return setPlaying(false)
-    setSelRaw(rows[0].name)
+    setSelRaw(rows[0].id)
     setPlaying(true)
   }
   // Longer routes take a bit longer to draw.
   const drawMs = Math.min(2600, 1100 + selected.km * 5)
   const km = useCountUp(selected.km)
   const minutes = useCountUp(selected.minutes)
-  const waypointUrl = `https://www.google.com/maps/dir/?api=1&origin=Livno&destination=${encodeURIComponent(selected.name)}&travelmode=driving`
+  const waypointUrl = `https://www.google.com/maps/dir/?api=1&origin=Livno&destination=${encodeURIComponent(selected.location)}&travelmode=driving`
 
   // Route layers, once the map is ready.
   useEffect(() => {
@@ -161,7 +164,7 @@ export function MapSection() {
       <SectionHead
         id="karta"
         title="Karta"
-        meta={`${PLACES.length} ODREDIŠTA · ${formatKm(TOTAL_KM)} KM PRIJEĐENO`}
+        meta={`${PLACES.length} MEETOVA · ${formatKm(TOTAL_KM)} KM PRIJEĐENO`}
       />
       <span id="karta-title" className="sr-only">Karta odredišta</span>
 
@@ -207,16 +210,16 @@ export function MapSection() {
               </MapMarker>
 
               {/* Destination pins */}
-              {PLACES.map((p) => {
-                const on = p.name === sel
+              {PINS.map((p) => {
+                const on = p.town === selected.town
                 const dim = filter !== 'sve' && p.k !== filter
                 return (
-                  <MapMarker key={p.name} map={map} lib={lib} lon={p.lon} lat={p.lat} z={on ? 20 : 5}>
+                  <MapMarker key={p.town} map={map} lib={lib} lon={p.lon} lat={p.lat} z={on ? 20 : 5}>
                     <button
                       type="button"
-                      onClick={() => setSel(p.name)}
+                      onClick={() => setSel(p.id)}
                       aria-pressed={on}
-                      aria-label={`${p.name}, ${p.km} km od Livna`}
+                      aria-label={`${p.town}, ${p.km} km od Livna`}
                       className="group relative block cursor-pointer transition-opacity duration-200 hover:brightness-110 focus-visible:outline-none"
                       style={{ opacity: dim ? 0.38 : 1, ...pinScale(on ? 1.22 : 1) }}
                     >
@@ -235,7 +238,7 @@ export function MapSection() {
                             : 'bg-ink text-white group-hover:bg-white group-hover:text-ink group-focus-visible:bg-white group-focus-visible:text-ink'
                         }`}
                       >
-                        {p.name}
+                        {p.town}
                       </div>
                     </button>
                   </MapMarker>
@@ -357,7 +360,13 @@ export function MapSection() {
                   </span>
                 </div>
                 <div key={sel} className="animate-swap-in">
-                  <div className="mt-2 text-[54px] leading-[.9] font-extrabold uppercase italic">{selected.name}</div>
+                  <div className="mt-2 font-mono text-sm tracking-[.08em] text-lime uppercase">
+                    {selected.location}
+                    {selected.year ? ` · ${selected.year}` : ''}
+                  </div>
+                  <div className={`mt-1 leading-[.9] font-extrabold uppercase italic ${selected.name.length > 16 ? 'text-[38px]' : 'text-[54px]'}`}>
+                    {selected.name}
+                  </div>
                   <div className="mt-2.5 text-[19px] leading-[1.15] font-semibold">{selEvent}</div>
                 </div>
               </div>
@@ -382,7 +391,7 @@ export function MapSection() {
             className="flex min-h-0 flex-1 flex-col gap-1.5 bg-ink/80 px-[18px] py-3.5 shadow-[inset_0_0_0_2px_rgba(255,255,255,.2)]"
           >
             <div className="flex items-center justify-between gap-3 text-[15px] font-bold tracking-[.12em] text-cyan uppercase">
-              <span>Sva odredišta</span>
+              <span>Svi meetovi</span>
               <button
                 type="button"
                 onClick={startReplay}
@@ -393,20 +402,26 @@ export function MapSection() {
                 {playing ? 'Zaustavi' : 'Reprodukcija'}
               </button>
             </div>
+            {/* Scrolls when there are many meets. */}
+            <div className="-mx-1 flex max-h-[380px] min-h-0 flex-col gap-1.5 overflow-x-hidden overflow-y-auto px-1">
             {rows.map((r) => {
-              const on = r.name === sel
+              const on = r.id === sel
               return (
                 <button
-                  key={r.name}
+                  key={r.id}
                   type="button"
-                  onClick={() => setSel(r.name)}
+                  onClick={() => setSel(r.id)}
                   aria-pressed={on}
-                  className={`group grid cursor-pointer -skew-x-6 grid-cols-[118px_minmax(0,1fr)_62px] items-center gap-2.5 px-2 py-1 text-left transition-[background-color,translate] duration-200 hover:translate-x-1.5 focus-visible:outline-2 focus-visible:outline-white ${
+                  className={`group grid cursor-pointer -skew-x-6 grid-cols-[minmax(0,2.2fr)_minmax(0,1fr)_62px] items-center gap-2.5 px-2 py-1 text-left transition-[background-color,translate] duration-200 hover:translate-x-1.5 focus-visible:outline-2 focus-visible:outline-white ${
                     on ? 'bg-white/15' : 'hover:bg-white/10'
                   }`}
                 >
-                  <span className={`text-[19px] font-extrabold uppercase italic transition-colors group-hover:text-white ${on ? 'text-white' : 'text-soft'}`}>
-                    {r.name}
+                  <span className={`min-w-0 transition-colors group-hover:text-white ${on ? 'text-white' : 'text-soft'}`}>
+                    <span className="block truncate text-[17px] leading-tight font-extrabold uppercase italic">{r.name}</span>
+                    <span className="block truncate font-mono text-xs text-muted">
+                      {r.town}
+                      {r.year ? ` · ${r.year}` : ''}
+                    </span>
                   </span>
                   <span className="h-1.5 bg-white/15">
                     <span
@@ -418,6 +433,7 @@ export function MapSection() {
                 </button>
               )
             })}
+            </div>
           </div>
         </div>
       </div>

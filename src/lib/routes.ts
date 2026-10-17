@@ -35,7 +35,8 @@ const ORIGIN = cache.origin
  * next build fetches the real route).
  */
 export function routeTo(name: string, lon: number, lat: number) {
-  const hit = cache.routes.find((r) => r.name === name && Math.abs(r.lon - lon) < 1e-6 && Math.abs(r.lat - lat) < 1e-6)
+  // Keyed by coordinates (several meets in one town share a route); the name is only a label in the cache.
+  const hit = cache.routes.find((r) => Math.abs(r.lon - lon) < 1e-6 && Math.abs(r.lat - lat) < 1e-6)
   const line = hit ? decode(hit.polyline) : [[ORIGIN.lon, ORIGIN.lat] as [number, number], [lon, lat] as [number, number]]
   let km: number
   let min: number

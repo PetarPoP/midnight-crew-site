@@ -95,17 +95,36 @@ export const KIND_COLOR: Record<Kind, string> = {
   bili: 'var(--color-bili)',
 }
 
-// Destinations (src/content/places). Distances, drive times and route shapes
+// Meets we went to (src/content/places): meet name, location (town) and year. Distances, drive times and route shapes
 // are real driving routes from Livno, cached by scripts/fetch-routes.mjs.
 export const LIVNO = { lon: 17.008, lat: 43.827 }
 
-type PlaceFile = { name: string; lon: number; lat: number; kind: Kind; photo?: string }
+type PlaceFile = { name: string; location?: string; year?: number; lon: number; lat: number; kind: Kind; photo?: string }
 const PLACE_DATA = byFile(import.meta.glob<{ default: PlaceFile }>('../content/places/*.json', { eager: true }))
 
 export const PLACES = PLACE_DATA.map((p) => {
-  const r = routeTo(p.name, p.lon, p.lat)
-  return { name: p.name, lon: p.lon, lat: p.lat, k: p.kind, photo: p.photo ?? '', km: r.km, minutes: r.min, line: r.line }
+  const location = p.location || p.name
+  const r = routeTo(location, p.lon, p.lat)
+  return {
+    id: p.id,
+    /** Meet name, e.g. "Volkswagen meet". */
+    name: p.name,
+    /** Town, e.g. "Kotor, Crna Gora". */
+    location,
+    /** Town without the country, for map labels and matching events. */
+    town: location.split(',')[0].trim(),
+    year: p.year ?? 0,
+    lon: p.lon,
+    lat: p.lat,
+    k: p.kind,
+    photo: p.photo ?? '',
+    km: r.km,
+    minutes: r.min,
+    line: r.line,
+  }
 })
+/** Number of different towns we went to. */
+export const TOWNS = new Set(PLACES.map((p) => p.town.toLowerCase())).size
 export type PlaceWithKm = (typeof PLACES)[number]
 
 export const MAX_KM = Math.max(...PLACES.map((p) => p.km))

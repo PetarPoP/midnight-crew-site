@@ -26,11 +26,14 @@ let changed = false
 const routes = []
 
 for (const p of places) {
-  const hit = cache.routes.find((r) => r.name === p.name && same(r.lon, p.lon) && same(r.lat, p.lat))
+  // Routes are keyed by coordinates: several meets in one town share one route.
+  if (routes.some((r) => same(r.lon, p.lon) && same(r.lat, p.lat))) continue
+  const hit = cache.routes.find((r) => same(r.lon, p.lon) && same(r.lat, p.lat))
   if (hit) {
     routes.push(hit)
     continue
   }
+  const name = p.location || p.name
   try {
     const url = `https://router.project-osrm.org/route/v1/driving/${ORIGIN.lon},${ORIGIN.lat};${p.lon},${p.lat}?overview=full&geometries=polyline`
     const res = await fetch(url, { signal: AbortSignal.timeout(15000) })
@@ -39,7 +42,7 @@ for (const p of places) {
     if (!r) throw new Error(json.message || `HTTP ${res.status}`)
     const pts = simplify(decode(r.geometry), TOLERANCE)
     routes.push({
-      name: p.name,
+      name,
       lon: p.lon,
       lat: p.lat,
       distance_m: Math.round(r.distance * 10) / 10,
@@ -47,9 +50,9 @@ for (const p of places) {
       polyline: encode(pts),
     })
     changed = true
-    console.log(`route: ${p.name} ${(r.distance / 1000).toFixed(0)} km`)
+    console.log(`route: ${name} ${(r.distance / 1000).toFixed(0)} km`)
   } catch (err) {
-    console.warn(`route: could not fetch ${p.name} (${err.message}); the map will draw a straight line`)
+    console.warn(`route: could not fetch ${name} (${err.message}); the map will draw a straight line`)
   }
 }
 

@@ -2,7 +2,7 @@ import { Place } from './ui'
 import { ArrowRight, ArrowUp, Diamond } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
 import type { ReactNode } from 'react'
-import { EVENTS, INSTAGRAM_URL, PLACES, SETTINGS, TOTAL_KM, formatKm, upcomingEvents } from '~/lib/data'
+import { EVENTS, INSTAGRAM_URL, SETTINGS, TOTAL_KM, TOWNS, formatKm, upcomingEvents } from '~/lib/data'
 import { GarageLink } from './GarageDoor'
 
 const CREDITS = [
@@ -58,7 +58,7 @@ export function Footer() {
           </p>
           <dl className="mt-6 flex gap-8">
             <Stat label="Km prijeđeno" value={formatKm(TOTAL_KM)} />
-            <Stat label="Gradova" value={String(PLACES.length)} />
+            <Stat label="Gradova" value={String(TOWNS)} />
             <Stat label="Meetova" value={`${EVENTS.length}+`} />
           </dl>
         </div>

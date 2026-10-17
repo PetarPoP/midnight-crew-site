@@ -9,7 +9,7 @@ import { Place } from './ui'
 /** Destination of an event ("Livno → Buško jezero" → Buško jezero), if it is a known place. */
 function destination(place: string) {
   const last = place.split(/\s*(?:→|->)\s*/).pop()!.toLowerCase()
-  return PLACES.find((p) => p.name.toLowerCase() === last) ?? PLACES.find((p) => place.toLowerCase().includes(p.name.toLowerCase()))
+  return PLACES.find((p) => p.town.toLowerCase() === last) ?? PLACES.find((p) => place.toLowerCase().includes(p.town.toLowerCase()))
 }
 
 function pin(color: string, label: string) {
@@ -46,7 +46,7 @@ export function Map3DCard({ event: e }: { event: CrewEvent }) {
       const maplibregl = await loadMaplibre()
       if (cancelled) return
       const dest = destination(e.place)
-      const line = dest ? routeLonLat(dest.name, dest.lon, dest.lat) : [[LIVNO.lon, LIVNO.lat] as [number, number]]
+      const line = dest ? routeLonLat(dest.location, dest.lon, dest.lat) : [[LIVNO.lon, LIVNO.lat] as [number, number]]
       const lons = line.map((p) => p[0])
       const lats = line.map((p) => p[1])
       const m = new maplibregl.Map({
