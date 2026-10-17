@@ -40,7 +40,7 @@ try {
   process.exit(0)
 }
 
-if (![data.events, data.products, data.places, data.garage].some((l) => l.length) || !data.settings.site_url) {
+if (![data.events, data.products, data.places, data.garage].some((l) => l.length) && !data.settings.site_url) {
   console.warn('fetch-cms: CMS is still empty, keeping src/content as it is')
   process.exit(0)
 }
@@ -77,8 +77,9 @@ function local(iso) {
 const json = (v) => `${JSON.stringify(v, null, 2)}\n`
 const strip = ({ id: _id, createdAt: _c, updatedAt: _u, globalType: _g, ...rest }) => rest
 
-/** Replace a content folder with one file per CMS document. */
+/** Replace a content folder with one file per CMS document. An empty CMS collection keeps the repo's files. */
 function writeFolder(name, docs) {
+  if (!docs.length) return console.warn(`fetch-cms: no ${name} in the CMS yet, keeping src/content/${name}`)
   const dir = join(CONTENT, name)
   rmSync(dir, { recursive: true, force: true })
   mkdirSync(dir, { recursive: true })
@@ -150,8 +151,9 @@ writeFolder('events', events)
 writeFolder('products', products)
 writeFolder('places', places)
 writeFolder('garage', garage)
-writeFileSync(join(CONTENT, 'settings.json'), json(strip(data.settings)))
-writeFileSync(join(CONTENT, 'garage-page.json'), json(strip(data.garagePage)))
+// Globals that were never saved in the CMS come back without fields, so keep the repo's copy.
+if (data.settings.site_url) writeFileSync(join(CONTENT, 'settings.json'), json(strip(data.settings)))
+if (data.garagePage.title) writeFileSync(join(CONTENT, 'garage-page.json'), json(strip(data.garagePage)))
 
 // Remove photos that the CMS no longer uses.
 if (existsSync(PHOTOS)) for (const f of readdirSync(PHOTOS)) if (!photos.has(f)) rmSync(join(PHOTOS, f))
