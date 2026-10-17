@@ -142,6 +142,7 @@ for (const c of data.garage) {
       drivetrain: c.drivetrain ?? 'rwd',
       note: c.note ?? '',
       image: await photo(c.image),
+      crop: { x: c.imageX ?? 50, y: c.imageY ?? 50, zoom: c.imageZoom ?? 1 },
       order: c.order ?? 10,
     },
   })

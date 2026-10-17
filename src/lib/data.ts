@@ -153,6 +153,8 @@ export type Car = {
   note: string
   /** Transparent PNG of the car, or empty for the silhouette placeholder. */
   image: string
+  /** How the photo sits in its 4:3 box: focus point in % and zoom (CMS: Položaj u boksu). */
+  crop: { x: number; y: number; zoom: number }
 }
 
 type CarFile = Pick<Car, 'car'> & Partial<Omit<Car, 'id' | 'car'>> & { order?: number }
@@ -172,6 +174,7 @@ export const GARAGE: Car[] = byFile(import.meta.glob<{ default: CarFile }>('../c
     torque: c.torque ?? 0,
     note: c.note ?? '',
     image: c.image ?? '',
+    crop: { x: c.crop?.x ?? 50, y: c.crop?.y ?? 50, zoom: c.crop?.zoom ?? 1 },
     drivetrain: c.drivetrain ?? 'rwd',
   }))
 

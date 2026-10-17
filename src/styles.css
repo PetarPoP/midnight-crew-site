@@ -534,3 +534,9 @@
 .box[data-open] .box-door {
   height: 8%;
 }
+/* Touch screens can't hover, so their doors are always up */
+@media (hover: none) {
+  .box .box-door {
+    height: 8%;
+  }
+}

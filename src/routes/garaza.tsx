@@ -20,8 +20,12 @@ export const Route = createFileRoute('/garaza')({
   component: GaragePage,
 })
 
-/** How far each box door hangs down (20–70%), fixed per box so it doesn't jump around. */
-const doorHeight = (i: number) => `${20 + ((i * 37 + 11) % 51)}%`
+/** How far each box door hangs down (18–72%), mixed from the car and box number so rows don't repeat, but fixed between visits. */
+function doorHeight(car: string, no: number) {
+  let h = 2166136261
+  for (const ch of `${car}#${no}`) h = Math.imul(h ^ ch.charCodeAt(0), 16777619)
+  return `${18 + ((h >>> 0) % 55)}%`
+}
 
 const igUrl = (handle: string) => `https://www.instagram.com/${handle}/`
 
@@ -29,7 +33,7 @@ function GaragePage() {
   const [q, setQ] = useState('')
   const [az, setAz] = useState(false)
   const [join, setJoin] = useState(false)
-  // On touch screens the first tap lifts a door, the second opens Instagram.
+  // A tap on a box without Instagram lifts its door (touch screens show every door up anyway).
   const [open, setOpen] = useState<string | null>(null)
   const lvl = crewLevel()
   const n = GARAGE.length
@@ -115,9 +119,8 @@ function GaragePage() {
 
 /** One car's "box": a garage bay whose door lifts to show the car. */
 function Box({ car, no, index, open, onOpen }: { car: Car; no: number; index: number; open: boolean; onOpen: () => void }) {
-  const [touch, setTouch] = useState(false)
   const label = car.instagram ? `${car.car}, @${car.instagram}` : car.car
-  const style = { '--i': Math.min(index, 8), '--door': doorHeight(no - 1) } as CSSProperties
+  const style = { '--i': Math.min(index, 8), '--door': doorHeight(car.car, no) } as CSSProperties
 
   const inner = (
     <>
@@ -131,6 +134,11 @@ function Box({ car, no, index, open, onOpen }: { car: Car; no: number; index: nu
               loading={index < 6 ? 'eager' : 'lazy'}
               draggable={false}
               className="size-full object-cover"
+              style={{
+                objectPosition: `${car.crop.x}% ${car.crop.y}%`,
+                transform: car.crop.zoom > 1 ? `scale(${car.crop.zoom})` : undefined,
+                transformOrigin: `${car.crop.x}% ${car.crop.y}%`,
+              }}
             />
           ) : (
             <div className="flex size-full flex-col items-center justify-center gap-1.5 text-muted">
@@ -184,13 +192,6 @@ function Box({ car, no, index, open, onOpen }: { car: Car; no: number; index: nu
       data-open={open || undefined}
       style={style}
       className={cls}
-      onPointerDown={(e) => setTouch(e.pointerType === 'touch')}
-      onClick={(e) => {
-        if (touch && !open) {
-          e.preventDefault()
-          onOpen()
-        }
-      }}
     >
       {inner}
     </a>
