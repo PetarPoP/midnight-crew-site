@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 
-// The CMS is its own Worker (cms/ in this repository). /admin on the site leads there.
+// The CMS is its own Worker (midnight-crew-cms). /admin on the site leads there.
 const CMS_ADMIN = 'https://midnight-crew-cms.pop-sites.workers.dev/admin'
 
 export const Route = createFileRoute('/admin/$')({

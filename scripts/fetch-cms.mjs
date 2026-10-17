@@ -1,4 +1,4 @@
-// Pulls the content from the Midnight Crew CMS (cms/, Payload on Cloudflare) into
+// Pulls the content from the Midnight Crew CMS (Payload on Cloudflare) into
 // src/content and the photos into public/images/cms. Runs first in "npm run build",
 // so a save in the CMS shows up on the next deploy (the CMS calls the deploy hook).
 //

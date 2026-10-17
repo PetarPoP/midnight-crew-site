@@ -24,7 +24,7 @@ Stranica je na Cloudflare Workers, spojena preko GitHuba: svaki push na `main` a
 
 ## Uređivanje sadržaja (CMS)
 
-CMS je zasebna aplikacija u mapi `cms/` ([Payload CMS](https://payloadcms.com) na Cloudflare Workers, s D1 bazom i R2 za slike), isto kao fesb-racing-cms. Admin je na https://midnight-crew-cms.pop-sites.workers.dev/admin (i `/admin` na stranici vodi tamo). Prijava je e-mail i lozinka; prvi korisnik koji se registrira postaje admin, a ostale (urednike) dodaje admin pod Postavke → Korisnici.
+CMS je zaseban projekt (`midnight-crew-cms`, [Payload CMS](https://payloadcms.com) na Cloudflare Workers, s D1 bazom i R2 za slike), isto kao fesb-racing-cms. Nije u ovom repou: deploya se s računala, upute su u njegovom README-u. Admin je na https://midnight-crew-cms.pop-sites.workers.dev/admin (i `/admin` na stranici vodi tamo). Prijava je e-mail i lozinka; prvi korisnik koji se registrira postaje admin, a ostale (urednike) dodaje admin pod Postavke → Korisnici.
 
 U CMS-u se uređuju događaji, shop, mjesta na karti, garaža, postavke stranice i tekstovi stranice Garaža. Slike se uploadaju izravno u CMS. Pod "Narudžbe i poruke" su narudžbe iz shopa i poruke "Tvoj auto? Javi se" (čitaju se iz D1 baze stranice, status narudžbe se mijenja tamo).
 
@@ -35,7 +35,7 @@ Kako promjena dođe na stranicu:
 3. `npm run build` prvo pokrene `scripts/fetch-cms.mjs`: povuče sav sadržaj iz CMS-a u `src/content/` i slike u `public/images/cms/`, pa se stranica napravi s tim.
 4. Za 2 do 4 minute promjena je live.
 
-Ako CMS nije dostupan ili je još prazan, build koristi JSON koji je već u `src/content/` (zadnja kopija), pa stranica nikad ne padne zbog CMS-a. Lokalno: `npm run cms:pull` povuče sadržaj s live CMS-a (`CMS_URL=http://localhost:3100` za lokalni). Postavljanje i lokalni rad s CMS-om: [`cms/README.md`](cms/README.md).
+Ako CMS nije dostupan ili je još prazan, build koristi JSON koji je već u `src/content/` (zadnja kopija), pa stranica nikad ne padne zbog CMS-a. Lokalno: `npm run cms:pull` povuče sadržaj s live CMS-a (`CMS_URL=http://localhost:3100` za lokalni).
 
 ## Struktura
 
@@ -43,7 +43,6 @@ Ako CMS nije dostupan ili je još prazan, build koristi JSON koji je već u `src
 - `src/components/` sekcije: `Header`, `Hero`, `MapSection`, `EventsSection`, `ShopSection`, `Footer`
 - `src/lib/cart.tsx` košarica (pamti se u pregledniku)
 - `src/content/` zadnja kopija sadržaja iz CMS-a (`events/`, `products/`, `places/`, `garage/`, `settings.json`, `garage-page.json`); build je osvježi iz CMS-a
-- `cms/` CMS (Payload, zaseban Cloudflare Worker `midnight-crew-cms`)
 - `src/lib/data.ts` učitava sadržaj i priprema ga za stranicu
 - `src/components/overlay/` brzi pregled artikla (`?p=`) i događaja (`?e=`), otvara se na bilo kojoj stranici
 - `src/lib/mapStyle.ts` izgled karte (OpenStreetMap, tamna tema), isti za kartu u heroju i sekciju Karta
