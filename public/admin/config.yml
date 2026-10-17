@@ -150,3 +150,19 @@ collections:
           - { name: instagram_handle, label: Instagram ime (bez @), widget: string }
           - { name: rules, label: Pravila (naslovnica), widget: text }
           - { name: shipping_note, label: Napomena o dostavi (shop), widget: text }
+      - name: garage_page
+        label: Stranica Garaža
+        file: src/content/garage-page.json
+        format: json
+        fields:
+          - { name: title, label: Naslov, widget: string, hint: 'Naslov stranice /garaza i trake na naslovnici.' }
+          - { name: description, label: Opis za Google i dijeljenje linka, widget: string }
+          - { name: strip_button, label: Gumb na naslovnici, widget: string, hint: 'Npr. "Uđi u garažu".' }
+          - { name: door_animation, label: Animacija garažnih vrata, widget: boolean, default: true, hint: 'Isključi ako želiš da se stranica otvori odmah, bez vrata.' }
+          - { name: door_label, label: Natpis iznad naslova na vratima, widget: string }
+          - { name: search_placeholder, label: Tekst u tražilici, widget: string }
+          - { name: no_photo, label: Boks bez fotke, widget: string }
+          - { name: no_instagram, label: Auto bez Instagrama, widget: string }
+          - { name: join_title, label: Zadnja pločica (naslov), widget: string }
+          - { name: join_text, label: Zadnja pločica (tekst), widget: string }
+          - { name: empty, label: Kad pretraga ne nađe ništa, widget: string, hint: 'Iza ovoga se doda ono što je upisano u tražilicu.' }

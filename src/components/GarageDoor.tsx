@@ -1,4 +1,5 @@
 import { useNavigate } from '@tanstack/react-router'
+import { GARAGE_PAGE } from '~/lib/data'
 import { createContext, useCallback, useContext, useRef, useState, type AnchorHTMLAttributes, type ReactNode } from 'react'
 
 /**
@@ -26,7 +27,7 @@ export function GarageDoorProvider({ children }: { children: ReactNode }) {
   const enter = useCallback(
     async (to = '/garaza') => {
       if (busy.current) return
-      if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      if (!GARAGE_PAGE.door_animation || matchMedia('(prefers-reduced-motion: reduce)').matches) {
         navigate({ to })
         return
       }
@@ -57,8 +58,8 @@ function GarageDoorOverlay({ phase }: { phase: Exclude<Phase, 'idle'> }) {
   return (
     <div aria-hidden="true" className="pointer-events-auto fixed inset-0 z-50 overflow-hidden">
       <div className={`garage-door garage-door-${phase} absolute inset-0 flex flex-col items-center justify-center`}>
-        <div className="mb-4 font-mono text-sm tracking-[.3em] text-lime md:mb-6 md:text-base">MIDNIGHT CREW · BOX</div>
-        <div className="text-[84px] leading-[.9] font-extrabold uppercase italic [text-shadow:0_8px_0_#000] md:text-[150px]">Garaža</div>
+        <div className="mb-4 font-mono text-sm tracking-[.3em] text-lime uppercase md:mb-6 md:text-base">{GARAGE_PAGE.door_label}</div>
+        <div className="text-[84px] leading-[.9] font-extrabold uppercase italic [text-shadow:0_8px_0_#000] md:text-[150px]">{GARAGE_PAGE.title}</div>
         {/* Bottom rail and handle */}
         <div className="absolute inset-x-0 bottom-0 h-[14px] bg-white" />
         <div className="absolute bottom-[26px] left-1/2 h-[10px] w-[90px] -translate-x-1/2 bg-lime shadow-[0_0_18px_var(--color-lime),0_0_40px_color-mix(in_oklab,var(--color-lime)_50%,transparent)]" />

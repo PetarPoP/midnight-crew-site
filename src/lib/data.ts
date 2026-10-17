@@ -14,6 +14,23 @@ export const SETTINGS = (import.meta.glob<{ default: Settings }>('../content/set
 export const SITE_URL = SETTINGS.site_url.replace(/\/$/, '')
 export const INSTAGRAM_URL = SETTINGS.instagram_url
 
+/** Texts on the garage page (CMS: Postavke → Stranica Garaža). */
+type GaragePage = {
+  title: string
+  description: string
+  strip_button: string
+  door_animation: boolean
+  door_label: string
+  search_placeholder: string
+  no_photo: string
+  no_instagram: string
+  join_title: string
+  join_text: string
+  empty: string
+}
+export const GARAGE_PAGE = (import.meta.glob<{ default: GaragePage }>('../content/garage-page.json', { eager: true })['../content/garage-page.json'])
+  .default
+
 export type CrewEvent = {
   id: string
   /** Local date and time, "2026-10-17T22:00". */

@@ -6,15 +6,15 @@ import { Footer } from '~/components/Footer'
 import { Header } from '~/components/Header'
 import { JoinModal } from '~/components/JoinModal'
 import { Picture } from '~/components/Picture'
-import { GARAGE, crewLevel, type Car } from '~/lib/data'
+import { GARAGE, GARAGE_PAGE as T, crewLevel, type Car } from '~/lib/data'
 import { ogMeta } from '~/lib/og'
 
 export const Route = createFileRoute('/garaza')({
   head: () => ({
     meta: [
-      { title: 'Garaža · Midnight Crew' },
-      { name: 'description', content: 'Auti Midnight Crew ekipe iz Livna.' },
-      ...ogMeta({ title: 'Garaža · Midnight Crew', description: `${GARAGE.length} auta ekipe iz Livna.`, card: 'garaza', path: '/garaza' }),
+      { title: `${T.title} · Midnight Crew` },
+      { name: 'description', content: T.description },
+      ...ogMeta({ title: `${T.title} · Midnight Crew`, description: T.description, card: 'garaza', path: '/garaza' }),
     ],
   }),
   component: GaragePage,
@@ -50,7 +50,7 @@ function GaragePage() {
           <Link to="/" className="font-mono text-sm tracking-[.08em] text-lime uppercase hover:underline md:text-base">
             ← Natrag · {n} {n === 1 ? 'auto' : 'auta'} · Crew LVL {lvl.level}
           </Link>
-          <h1 className="mt-1 text-[52px] leading-[.85] font-extrabold uppercase italic md:text-[72px]">Garaža</h1>
+          <h1 className="mt-1 text-[52px] leading-[.85] font-extrabold uppercase italic md:text-[72px]">{T.title}</h1>
         </div>
 
         <div data-reveal="right" className="flex w-full flex-wrap items-center gap-3 md:w-auto">
@@ -61,7 +61,7 @@ function GaragePage() {
               type="search"
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="Traži auto ili @ig…"
+              placeholder={T.search_placeholder}
               className="size-full bg-transparent pr-3 pl-9 font-mono text-base text-white outline-none placeholder:text-muted/70 focus-visible:shadow-[inset_0_-3px_0_var(--color-lime)] md:text-sm"
             />
           </label>
@@ -90,7 +90,7 @@ function GaragePage() {
         ))}
 
         {shown.length === 0 && (
-          <div className="col-span-full py-10 text-center text-xl font-bold text-muted">Nema auta za '{q.trim()}'</div>
+          <div className="col-span-full py-10 text-center text-xl font-bold text-muted">{T.empty} '{q.trim()}'</div>
         )}
 
         {/* Join tile */}
@@ -102,8 +102,8 @@ function GaragePage() {
           className="group flex aspect-[4/3] cursor-pointer flex-col items-center justify-center gap-2 border-2 border-dashed border-white/25 text-center transition-colors hover:border-lime hover:bg-white/5 focus-visible:border-lime focus-visible:outline-none"
         >
           <Plus size={30} strokeWidth={3} aria-hidden="true" className="text-lime transition-transform group-hover:rotate-90" />
-          <span className="text-xl font-extrabold uppercase italic md:text-2xl">Tvoj auto?</span>
-          <span className="text-base font-bold text-muted group-hover:text-white">Javi se</span>
+          <span className="text-xl font-extrabold uppercase italic md:text-2xl">{T.join_title}</span>
+          <span className="text-base font-bold text-muted group-hover:text-white">{T.join_text}</span>
         </button>
       </div>
 
@@ -135,7 +135,7 @@ function Box({ car, no, index, open, onOpen }: { car: Car; no: number; index: nu
           ) : (
             <div className="flex size-full flex-col items-center justify-center gap-1.5 text-muted">
               <Camera size={28} strokeWidth={2} aria-hidden="true" />
-              <span className="text-sm font-bold uppercase md:text-base">Fotka uskoro</span>
+              <span className="text-sm font-bold uppercase md:text-base">{T.no_photo}</span>
             </div>
           )}
         </div>
@@ -151,7 +151,7 @@ function Box({ car, no, index, open, onOpen }: { car: Car; no: number; index: nu
       {car.instagram ? (
         <div className="truncate font-mono text-xs text-lime md:text-sm">@{car.instagram}</div>
       ) : (
-        <div className="truncate font-mono text-xs text-muted md:text-sm">Bez Instagrama</div>
+        <div className="truncate font-mono text-xs text-muted md:text-sm">{T.no_instagram}</div>
       )}
     </>
   )

@@ -111,7 +111,8 @@ const WEEKDAYS = ['Nedjelja', 'Ponedjeljak', 'Utorak', 'Srijeda', 'Četvrtak', '
 
 await render('site', card({ bg: hero, eyebrow: 'Car meetovi · Livno', title: 'Midnight Crew', chips: ['Bez članarine', 'Bez drame'] }))
 await render('shop', card({ bg: hero, eyebrow: 'Merch ekipe', eyebrowColor: CYAN, title: 'Shop', chips: ['Pouzećem po BiH'], accent: CYAN }))
-await render('garaza', card({ bg: hero, eyebrow: 'Auti ekipe', title: 'Garaža', chips: [`${readJson('src/content/garage').length} auta`, 'Livno'] }))
+const gp = JSON.parse(readFileSync(join(ROOT, 'src/content/garage-page.json'), 'utf8'))
+await render('garaza', card({ bg: hero, eyebrow: 'Auti ekipe', title: gp.title, chips: [`${readJson('src/content/garage').length} auta`, 'Livno'] }))
 
 const events = readJson('src/content/events')
 for (const e of events) {

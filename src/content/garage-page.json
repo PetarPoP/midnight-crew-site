@@ -1,0 +1,13 @@
+{
+  "title": "Garaža",
+  "description": "Auti Midnight Crew ekipe iz Livna.",
+  "strip_button": "Uđi u garažu",
+  "door_animation": true,
+  "door_label": "Midnight Crew · Box",
+  "search_placeholder": "Traži auto ili @ig…",
+  "no_photo": "Fotka uskoro",
+  "no_instagram": "Bez Instagrama",
+  "join_title": "Tvoj auto?",
+  "join_text": "Javi se",
+  "empty": "Nema auta za"
+}
