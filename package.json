@@ -4,11 +4,12 @@
   "type": "module",
   "scripts": {
     "dev": "node scripts/copy-map-worker.mjs && node scripts/optimize-images.mjs && node scripts/og-images.mjs && vite dev --port 3000",
-    "build": "node scripts/fetch-routes.mjs && node scripts/copy-map-worker.mjs && node scripts/optimize-images.mjs && node scripts/og-images.mjs && vite build",
+    "build": "node scripts/fetch-cms.mjs && node scripts/fetch-routes.mjs && node scripts/copy-map-worker.mjs && node scripts/optimize-images.mjs && node scripts/og-images.mjs && vite build",
     "preview": "vite preview --port 3000",
     "deploy": "npm run build && wrangler deploy",
     "typecheck": "tsc --noEmit",
-    "cf-typegen": "wrangler types"
+    "cf-typegen": "wrangler types",
+    "cms:pull": "node scripts/fetch-cms.mjs"
   },
   "dependencies": {
     "@fontsource/barlow-condensed": "^5.3.0",

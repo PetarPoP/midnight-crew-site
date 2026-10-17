@@ -18,8 +18,6 @@ interface D1Database {
 declare module 'cloudflare:workers' {
   export const env: {
     DB: D1Database
-    /** Password for the orders panel in /admin. */
-    ADMIN_KEY?: string
     /** Optional Discord/Slack-style webhook that gets a message for every order. */
     NOTIFY_WEBHOOK?: string
     /** Telegram bot token (from @BotFather) and the chat id that gets order messages. */

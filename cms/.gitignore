@@ -1,0 +1,28 @@
+# dependencies
+node_modules/
+
+# next.js
+.next/
+out/
+next-env.d.ts
+*.tsbuildinfo
+
+# OpenNext and Cloudflare
+.open-next/
+.wrangler/
+.dev.vars
+.dev.vars.*
+
+# local env files
+.env
+.env*.local
+
+# local uploads
+/media
+
+# tests
+/test-results/
+/playwright-report/
+
+.DS_Store
+npm-debug.log*

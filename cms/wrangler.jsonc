@@ -1,0 +1,29 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "main": ".open-next/worker.js",
+  "name": "midnight-crew-cms",
+  "compatibility_date": "2025-08-15",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": { "directory": ".open-next/assets", "binding": "ASSETS" },
+  "vars": {
+    "FRONTEND_URL": "https://midnight-crew-site.pop-sites.workers.dev"
+  },
+  "d1_databases": [
+    {
+      "binding": "D1",
+      "database_id": "31a10f6f-ba3a-4dff-9575-b07d830a24c7",
+      "database_name": "midnight-crew-cms",
+      "remote": true
+    },
+    {
+      // Database of the site: shop orders and garage messages (page "Narudžbe" in the admin).
+      "binding": "ORDERS",
+      "database_id": "37e3c5d2-8a54-44dd-8b05-2afcb2cc61ea",
+      "database_name": "midnight-crew"
+    }
+  ],
+  "r2_buckets": [
+    { "binding": "R2", "bucket_name": "midnight-crew-media" }
+  ],
+  "observability": { "enabled": true }
+}

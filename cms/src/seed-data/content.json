@@ -1,0 +1,225 @@
+{
+  "settings": {
+    "site_url": "https://midnight-crew-site.pop-sites.workers.dev",
+    "instagram_url": "https://www.instagram.com/midnight_crew_livno/",
+    "instagram_handle": "midnight_crew_livno",
+    "rules": "Bez članarine, bez drame, bez paljenja guma na meetu. Jedino pravilo: poštuj mjesto i ljude oko sebe.",
+    "shipping_note": "Dostava samo unutar Bosne i Hercegovine. Plaćanje pouzećem, gotovinom kuriru pri preuzimanju. Cijenu dostave javljamo pri potvrdi narudžbe."
+  },
+  "garagePage": {
+    "title": "Garaža",
+    "description": "Auti Midnight Crew ekipe iz Livna.",
+    "strip_button": "Uđi u garažu",
+    "door_animation": true,
+    "door_label": "Midnight Crew · Box",
+    "search_placeholder": "Traži auto ili @ig…",
+    "no_photo": "Fotka uskoro",
+    "no_instagram": "Bez Instagrama",
+    "join_title": "Tvoj auto?",
+    "join_text": "Javi se",
+    "empty": "Nema auta za"
+  },
+  "events": [
+    {
+      "id": "halloween-car-meet",
+      "title": "Halloween car meet",
+      "date": "2026-10-31T21:00",
+      "place": "Split",
+      "kind": "idemo",
+      "description": "Idemo zajedno na Halloween car meet u Splitu.",
+      "image": ""
+    },
+    {
+      "id": "nocni-cruise-do-jezera",
+      "title": "Noćni cruise do jezera",
+      "date": "2026-10-24T23:00",
+      "place": "Livno → Buško jezero",
+      "kind": "nas",
+      "description": "Zajednička noćna vožnja iz Livna do Buškog jezera. Točno mjesto polaska objavljujemo na Instagramu.",
+      "image": ""
+    },
+    {
+      "id": "regionalni-meet",
+      "title": "Regionalni meet",
+      "date": "2026-11-14T20:00",
+      "place": "Mostar",
+      "kind": "idemo",
+      "description": "Idemo zajedno na regionalni meet u Mostaru.",
+      "image": ""
+    },
+    {
+      "id": "subotnje-okupljanje",
+      "title": "Subotnje okupljanje",
+      "date": "2026-10-17T22:00",
+      "place": "Livno",
+      "kind": "nas",
+      "description": "Tjedno okupljanje ekipe u Livnu. Točnu lokaciju objavljujemo na Instagramu 2h prije.",
+      "image": ""
+    },
+    {
+      "id": "zatvaranje-sezone",
+      "title": "Zatvaranje sezone",
+      "date": "2026-11-28T21:00",
+      "place": "Livno",
+      "kind": "nas",
+      "description": "Zadnje okupljanje ove sezone u Livnu.",
+      "image": ""
+    }
+  ],
+  "products": [
+    {
+      "id": "hoodie",
+      "name": "Hoodie",
+      "price": 70,
+      "category": "odjeca",
+      "order": 2,
+      "image": "",
+      "blurb": "Debela hoodica s kapuljačom za noćne cruiseove. Vezeni MC logo, rozi detalji.",
+      "details": [
+        "Pamuk i poliester, 320 g/m²",
+        "Vezeni logo, rozi vezice",
+        "Klokan džep"
+      ],
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL"
+      ]
+    },
+    {
+      "id": "majica",
+      "name": "Majica",
+      "price": 35,
+      "category": "odjeca",
+      "order": 1,
+      "image": "",
+      "blurb": "Crna pamučna majica s Midnight Crew logom sprijeda i rutom Livno–Buško na leđima.",
+      "details": [
+        "100% pamuk, 180 g/m²",
+        "Print sprijeda i na leđima",
+        "Unisex kroj"
+      ],
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL"
+      ]
+    },
+    {
+      "id": "naljepnica",
+      "name": "Naljepnica",
+      "price": 10,
+      "category": "dodaci",
+      "order": 3,
+      "image": "",
+      "blurb": "Vodootporna naljepnica za staklo ili branik, 20 cm. Svijetli rozo kad je uhvate farovi.",
+      "details": [
+        "20 × 6 cm",
+        "Vodootporna, UV otporna",
+        "Reflektirajuća roza boja"
+      ],
+      "sizes": []
+    }
+  ],
+  "places": [
+    {
+      "id": "busko-jezero",
+      "name": "Buško jezero",
+      "lon": 17.03,
+      "lat": 43.672,
+      "kind": "nas",
+      "photo": ""
+    },
+    {
+      "id": "imotski",
+      "name": "Imotski",
+      "lon": 17.216,
+      "lat": 43.447,
+      "kind": "bili",
+      "photo": ""
+    },
+    {
+      "id": "mostar",
+      "name": "Mostar",
+      "lon": 17.808,
+      "lat": 43.343,
+      "kind": "idemo",
+      "photo": ""
+    },
+    {
+      "id": "sarajevo",
+      "name": "Sarajevo",
+      "lon": 18.413,
+      "lat": 43.856,
+      "kind": "bili",
+      "photo": ""
+    },
+    {
+      "id": "split",
+      "name": "Split",
+      "lon": 16.44,
+      "lat": 43.508,
+      "kind": "idemo",
+      "photo": ""
+    },
+    {
+      "id": "tomislavgrad",
+      "name": "Tomislavgrad",
+      "lon": 17.226,
+      "lat": 43.718,
+      "kind": "bili",
+      "photo": ""
+    },
+    {
+      "id": "zagreb",
+      "name": "Zagreb",
+      "lon": 15.982,
+      "lat": 45.815,
+      "kind": "bili",
+      "photo": ""
+    }
+  ],
+  "garage": [
+    {
+      "id": "primjer-auto-1",
+      "car": "Demo: BMW M3",
+      "owner": "Ime člana",
+      "instagram": "",
+      "year": 2008,
+      "hp": 420,
+      "torque": 400,
+      "drivetrain": "rwd",
+      "note": "Demo auto. Zamijeni ga pravim autom ekipe u CMS-u.",
+      "image": "/images/garage/demo-bmw-m3.webp",
+      "order": 1
+    },
+    {
+      "id": "primjer-auto-2",
+      "car": "Demo: Lexus IS 250",
+      "owner": "Ime člana",
+      "instagram": "midnight_crew_livno",
+      "year": 2007,
+      "hp": 208,
+      "torque": 252,
+      "drivetrain": "rwd",
+      "note": "Demo auto s Instagramom. Zamijeni ga pravim autom ekipe u CMS-u.",
+      "image": "/images/garage/demo-lexus-is.webp",
+      "order": 2
+    },
+    {
+      "id": "primjer-auto-3",
+      "car": "Demo: VW Golf 4 GTI",
+      "owner": "Ime člana",
+      "instagram": "",
+      "year": 2002,
+      "hp": 150,
+      "torque": 210,
+      "drivetrain": "fwd",
+      "note": "Demo auto bez fotke: ovako izgleda boks dok se ne doda slika.",
+      "image": "",
+      "order": 3
+    }
+  ]
+}

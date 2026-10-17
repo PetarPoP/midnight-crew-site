@@ -2,8 +2,9 @@ import { routeTo } from './routes'
 
 export type Kind = 'nas' | 'idemo' | 'bili'
 
-// Content lives in src/content (edited through the CMS at /admin) and is
-// bundled at build time.
+// Content lives in src/content and is bundled at build time. The build first
+// pulls it from the CMS (cms/, scripts/fetch-cms.mjs), so the files here are the
+// last copy and the fallback when the CMS can't be reached.
 type Json<T> = Record<string, { default: T }>
 const byFile = <T,>(files: Json<T>) =>
   Object.entries(files).map(([path, mod]) => ({ id: path.split('/').pop()!.replace(/\.json$/, ''), ...mod.default }))
