@@ -27,7 +27,8 @@ export function GarageDoorProvider({ children }: { children: ReactNode }) {
   const enter = useCallback(
     async (to = '/garaza') => {
       if (busy.current) return
-      if (!GARAGE_PAGE.door_animation || matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      // Plays even with the OS "reduce motion" setting: Windows turns that on whenever its animation effects are off.
+      if (!GARAGE_PAGE.door_animation) {
         navigate({ to })
         return
       }
