@@ -223,7 +223,12 @@ export function MapSection() {
                       className="group relative block cursor-pointer transition-opacity duration-200 hover:brightness-110 focus-visible:outline-none"
                       style={{ opacity: dim ? 0.38 : 1, ...pinScale(on ? 1.22 : 1) }}
                     >
-                      <div className="hex flex h-[52px] w-[46px] items-center justify-center bg-white transition-transform duration-200 ease-[cubic-bezier(.3,1.6,.5,1)] group-hover:scale-115 group-focus-visible:scale-115">
+                      {on && (
+                        <div className="animate-pin-pulse pointer-events-none absolute top-[26px] left-1/2 -mt-[45px] -ml-[45px] size-[90px] rounded-full border-[3px] border-lime" />
+                      )}
+                      <div
+                        className={`hex relative flex h-[52px] w-[46px] items-center justify-center transition-transform duration-200 ease-[cubic-bezier(.3,1.6,.5,1)] group-hover:scale-115 group-focus-visible:scale-115 ${on ? 'bg-lime' : 'bg-white'}`}
+                      >
                         <div
                           className="hex flex h-[46px] w-10 items-center justify-center text-xl font-extrabold text-ink italic"
                           style={{ background: KIND_COLOR[p.k] }}
@@ -403,7 +408,7 @@ export function MapSection() {
               </button>
             </div>
             {/* Scrolls when there are many meets. */}
-            <div className="-mx-1 flex max-h-[380px] min-h-0 flex-col gap-1.5 overflow-x-hidden overflow-y-auto px-1">
+            <div className="mc-scroll -mx-1 flex max-h-[380px] min-h-0 flex-col gap-1.5 overflow-x-hidden overflow-y-auto px-1 pr-2">
             {rows.map((r) => {
               const on = r.id === sel
               return (
@@ -413,10 +418,10 @@ export function MapSection() {
                   onClick={() => setSel(r.id)}
                   aria-pressed={on}
                   className={`group grid cursor-pointer -skew-x-6 grid-cols-[minmax(0,2.2fr)_minmax(0,1fr)_62px] items-center gap-2.5 px-2 py-1 text-left transition-[background-color,translate] duration-200 hover:translate-x-1.5 focus-visible:outline-2 focus-visible:outline-white ${
-                    on ? 'bg-white/15' : 'hover:bg-white/10'
+                    on ? 'bg-lime/15 shadow-[inset_4px_0_0_var(--color-lime)]' : 'hover:bg-white/10'
                   }`}
                 >
-                  <span className={`min-w-0 transition-colors group-hover:text-white ${on ? 'text-white' : 'text-soft'}`}>
+                  <span className={`min-w-0 transition-colors ${on ? 'text-lime' : 'text-soft group-hover:text-white'}`}>
                     <span className="block truncate text-[17px] leading-tight font-extrabold uppercase italic">{r.name}</span>
                     <span className="block truncate font-mono text-xs text-muted">
                       {r.town}

@@ -68,7 +68,7 @@ export function Footer() {
           <ColTitle>Izbornik</ColTitle>
           <ul className="space-y-1">
             {NAV.map((n) => {
-              const cls = 'group flex items-center gap-2 py-1 text-2xl font-bold text-soft uppercase italic no-underline transition-colors hover:text-white'
+              const cls = 'fh-wipe fh-hover-only -mx-3 inline-flex items-center gap-2 px-3 py-1 text-2xl font-bold text-soft uppercase italic no-underline'
               return (
                 <li key={n.label}>
                   {n.to === '/garaza' ? (
@@ -91,18 +91,18 @@ export function Footer() {
             to="."
             search={(s) => ({ ...s, e: next.id })}
             resetScroll={false}
-            className="group relative block overflow-hidden bg-panel p-5 no-underline transition-transform duration-200 hover:-translate-y-1"
+            className="fh-wipe group block bg-panel p-5 no-underline"
           >
             <div className="flex items-baseline justify-between gap-3">
-              <span className="text-5xl leading-none font-extrabold text-lime italic">{next.date}</span>
-              <span className="font-mono text-sm text-muted">{next.time}</span>
+              <span className="text-5xl leading-none font-extrabold text-lime italic group-hover:text-ink group-focus-visible:text-ink">{next.date}</span>
+              <span className="font-mono text-sm text-muted group-hover:text-ink group-focus-visible:text-ink">{next.time}</span>
             </div>
-            <div className="mt-3 text-2xl leading-tight font-extrabold text-white uppercase italic">{next.title}</div>
-            <div className="mt-1 flex items-center justify-between text-base font-semibold text-muted">
+            <div className="mt-3 text-2xl leading-tight font-extrabold text-white uppercase italic group-hover:text-ink group-focus-visible:text-ink">{next.title}</div>
+            <div className="mt-1 flex items-center justify-between text-base font-semibold text-muted group-hover:text-ink group-focus-visible:text-ink">
               <span>
                 <Place name={next.place} />
               </span>
-              <span className="text-lime transition-transform duration-200 group-hover:translate-x-1"><ArrowRight size={22} strokeWidth={3} aria-hidden="true" /></span>
+              <span className="text-lime transition-transform duration-200 group-hover:translate-x-1 group-hover:text-ink group-focus-visible:text-ink"><ArrowRight size={22} strokeWidth={3} aria-hidden="true" /></span>
             </div>
           </Link>
         </div>
@@ -115,9 +115,9 @@ export function Footer() {
             href={INSTAGRAM_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="group inline-flex -skew-x-12 items-center gap-3 bg-white px-6 py-3.5 text-ink no-underline shadow-[5px_5px_0_var(--color-pink)] transition-[translate,box-shadow] duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[8px_8px_0_var(--color-pink)] active:translate-0 active:shadow-[2px_2px_0_var(--color-pink)]"
+            className="fh-wipe inline-flex items-center gap-3 px-6 py-3.5 text-white no-underline shadow-[inset_0_0_0_2px_rgba(255,255,255,.35)]"
           >
-            <span className="flex skew-x-12 items-center gap-3">
+            <span className="flex items-center gap-3">
               <InstagramIcon />
               <span className="text-xl font-extrabold uppercase italic">@{SETTINGS.instagram_handle}</span>
             </span>

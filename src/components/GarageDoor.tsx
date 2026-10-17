@@ -3,16 +3,16 @@ import { GARAGE_PAGE } from '~/lib/data'
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type AnchorHTMLAttributes, type ReactNode } from 'react'
 
 /**
- * Garage-door transition into and out of /garaza: the door drops shut (1000ms),
- * stays closed while the page changes behind it (~500ms), then rolls up (1300ms).
+ * Garage-door transition into and out of /garaza: the door drops shut (600ms),
+ * stays closed while the page changes behind it (~250ms), then rolls up (800ms).
  * Leaving the garage through any link on it plays the door too.
  * The overlay lives in the root layout so it stays mounted through navigation.
  */
 type Phase = 'idle' | 'down' | 'hold' | 'up'
 
-const DOWN_MS = 1000
-const HOLD_MS = 500
-const UP_MS = 1300
+const DOWN_MS = 600
+const HOLD_MS = 250
+const UP_MS = 800
 
 const Ctx = createContext<{ enter: (to?: string) => void }>({ enter: () => {} })
 

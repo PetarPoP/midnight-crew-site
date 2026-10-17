@@ -163,7 +163,7 @@ export function Hero() {
               <div className="text-base font-bold tracking-[.12em] uppercase">Prijeđeno</div>
               <div>
                 <div className="text-[72px] leading-[.85] font-extrabold italic">{formatKm(TOTAL_KM)}</div>
-                <div className="text-[22px] font-extrabold uppercase italic">km · Bili smo</div>
+                <div className="text-[22px] font-extrabold uppercase italic">km</div>
               </div>
             </div>
           </Link>
@@ -173,7 +173,7 @@ export function Hero() {
         <Tile i={3} className="h-[200px] md:col-span-2 xl:h-auto">
           <div className="relative h-full -skew-x-6 bg-ink/80 shadow-[inset_0_0_0_2px_rgba(255,255,255,.2)] xl:skew-x-0">
             <div className={`${TILE_INNER} flex flex-col justify-between px-[26px] py-[18px]`}>
-              <div className="text-base font-bold tracking-[.12em] text-cyan uppercase">Pravila festivala</div>
+              <div className="text-base font-bold tracking-[.12em] text-cyan uppercase">O nama</div>
               <p className="text-[22px] leading-[1.1] font-semibold md:text-[26px]">
                 {SETTINGS.rules}
               </p>
