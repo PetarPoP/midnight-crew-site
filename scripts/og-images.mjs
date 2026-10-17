@@ -111,6 +111,7 @@ const WEEKDAYS = ['Nedjelja', 'Ponedjeljak', 'Utorak', 'Srijeda', 'Četvrtak', '
 
 await render('site', card({ bg: hero, eyebrow: 'Car meetovi · Livno', title: 'Midnight Crew', chips: ['Bez članarine', 'Bez drame'] }))
 await render('shop', card({ bg: hero, eyebrow: 'Merch ekipe', eyebrowColor: CYAN, title: 'Shop', chips: ['Pouzećem po BiH'], accent: CYAN }))
+await render('garaza', card({ bg: hero, eyebrow: 'Auti ekipe', title: 'Garaža', chips: [`${readJson('src/content/garage').length} auta`, 'Livno'] }))
 
 const events = readJson('src/content/events')
 for (const e of events) {
@@ -138,4 +139,4 @@ for (const p of products) {
   )
 }
 
-console.log(`og-images: ${2 + events.length + products.length} cards${settings.site_url ? '' : ' (no site_url in settings)'}`)
+console.log(`og-images: ${3 + events.length + products.length} cards${settings.site_url ? '' : ' (no site_url in settings)'}`)

@@ -137,13 +137,21 @@ export type Car = {
   image: string
 }
 
-type CarFile = Omit<Car, 'id'> & { order?: number }
+type CarFile = Pick<Car, 'car'> & Partial<Omit<Car, 'id' | 'car'>> & { order?: number }
 
 export const GARAGE: Car[] = byFile(import.meta.glob<{ default: CarFile }>('../content/garage/*.json', { eager: true }))
   .sort((a, b) => (a.order ?? 99) - (b.order ?? 99) || a.car.localeCompare(b.car))
   .map(({ order: _order, ...c }) => ({
     ...c,
-    instagram: (c.instagram ?? '').replace(/^@/, '').trim(),
+    owner: c.owner ?? '',
+    instagram: (c.instagram ?? '')
+      .trim()
+      .replace(/^https?:\/\/(www\.)?instagram\.com\//, '')
+      .replace(/^@/, '')
+      .replace(/\/.*$/, ''),
+    year: c.year ?? 0,
+    hp: c.hp ?? 0,
+    torque: c.torque ?? 0,
     note: c.note ?? '',
     image: c.image ?? '',
     drivetrain: c.drivetrain ?? 'rwd',

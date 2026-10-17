@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { Hero } from '~/components/Hero'
 import { MapSection } from '~/components/MapSection'
-import { GarageSection } from '~/components/GarageSection'
+import { GarageStrip } from '~/components/GarageStrip'
 import { EventsSection } from '~/components/EventsSection'
 import { ShopSection } from '~/components/ShopSection'
 import { Footer } from '~/components/Footer'
@@ -15,7 +15,7 @@ function Home() {
     <main className="overflow-x-clip bg-ink">
       <Hero />
       <MapSection />
-      <GarageSection />
+      <GarageStrip />
       <EventsSection />
       <ShopSection />
       <Footer />

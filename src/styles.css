@@ -484,3 +484,53 @@
   font: italic 800 11px/1 'Barlow Condensed', sans-serif;
   box-shadow: 0 0 0 2px #fff;
 }
+
+/* Garage door transition into /garaza (see GarageDoor.tsx) */
+.garage-door {
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.4)),
+    repeating-linear-gradient(180deg, #2e2740 0 46px, #15111e 46px 50px);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+  transform: translateY(-102%);
+}
+.garage-door-down {
+  animation: door-down 1000ms cubic-bezier(0.5, 0, 0.8, 0.5) forwards;
+}
+.garage-door-hold {
+  transform: translateY(0);
+}
+.garage-door-up {
+  animation: door-up 1300ms cubic-bezier(0.25, 0.7, 0.3, 1) forwards;
+}
+@keyframes door-down {
+  from {
+    transform: translateY(-102%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+@keyframes door-up {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-102%);
+  }
+}
+
+/* Garage page: each car's box door, lifts on hover / focus / tap */
+.box-door {
+  height: var(--door, 40%);
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.35)),
+    repeating-linear-gradient(180deg, #2e2740 0 9px, #15111e 9px 11px);
+  border-bottom: 5px solid #fff;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.55);
+  transition: height 0.45s cubic-bezier(0.3, 0.8, 0.3, 1);
+}
+.box:hover .box-door,
+.box:focus-visible .box-door,
+.box[data-open] .box-door {
+  height: 8%;
+}

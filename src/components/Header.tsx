@@ -4,22 +4,25 @@ import { useCart } from '~/lib/cart'
 import { crewLevel } from '~/lib/data'
 import { isTyping } from '~/lib/useGameKeys'
 import { KeyHint } from './ui'
+import { useGarageDoor } from './GarageDoor'
 
 const TABS = [
   { label: 'Kampanja', to: '/', hash: 'top' },
   { label: 'Galerija', to: '/', hash: 'galerija' },
   { label: 'Bili smo', to: '/', hash: 'karta' },
-  { label: 'Garaža', to: '/', hash: 'garaza' },
+  { label: 'Garaža', to: '/garaza', hash: undefined },
   { label: 'Shop', to: '/shop', hash: undefined },
 ] as const
 
 export function Header({ overlay = false }: { overlay?: boolean }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname })
   const navigate = useNavigate()
+  const door = useGarageDoor()
   const { count } = useCart()
-  const onShop = pathname.startsWith('/shop')
   const [homeTab, setHomeTab] = useState(0)
-  const tab = onShop ? TABS.length - 1 : homeTab
+  // Pages other than the landing page have their own tab.
+  const pageTab = TABS.findIndex((t) => t.to !== '/' && pathname.startsWith(t.to))
+  const tab = pageTab >= 0 ? pageTab : homeTab
   const lvl = crewLevel()
   const [compact, setCompact] = useState(false)
   const headerRef = useRef<HTMLElement>(null)
@@ -53,6 +56,8 @@ export function Header({ overlay = false }: { overlay?: boolean }) {
       if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
       else window.scrollTo({ top: 0, behavior: 'smooth' })
       history.replaceState(history.state, '', t.hash ? `#${t.hash}` : t.to)
+    } else if (t.to === '/garaza') {
+      door.enter()
     } else {
       navigate({ to: t.to, hash: t.hash })
     }

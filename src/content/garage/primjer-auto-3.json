@@ -1,0 +1,12 @@
+{
+  "car": "Demo: VW Golf 4 GTI",
+  "owner": "Ime člana",
+  "instagram": "",
+  "year": 2002,
+  "hp": 150,
+  "torque": 210,
+  "drivetrain": "fwd",
+  "note": "Demo auto bez fotke: ovako izgleda boks dok se ne doda slika.",
+  "image": "",
+  "order": 3
+}

@@ -1,0 +1,12 @@
+{
+  "car": "Demo: Lexus IS 250",
+  "owner": "Ime člana",
+  "instagram": "midnight_crew_livno",
+  "year": 2007,
+  "hp": 208,
+  "torque": 252,
+  "drivetrain": "rwd",
+  "note": "Demo auto s Instagramom. Zamijeni ga pravim autom ekipe u CMS-u.",
+  "image": "/images/garage/demo-lexus-is.webp",
+  "order": 2
+}

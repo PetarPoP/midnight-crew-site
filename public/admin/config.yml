@@ -106,33 +106,36 @@ collections:
     label: Garaža
     label_singular: Auto
     description: >-
-      Auti ekipe. Za najbolji izgled učitaj PNG auta bez pozadine (prozirna pozadina,
-      auto sa strane), npr. preko remove.bg. Svaki auto u garaži povećava Crew LVL.
+      Auti ekipe na stranici /garaza. Svaki auto dobije svoj boks s garažnim vratima koja se
+      dignu kad se pređe mišem ili tapne. Najbolje izgleda PNG auta bez pozadine (npr. preko
+      remove.bg), ali radi i obična fotka. Bez fotke boks piše "Fotka uskoro".
+      Klik na boks otvara Instagram vlasnika. Svaki auto povećava Crew LVL.
     folder: src/content/garage
     format: json
     create: true
     identifier_field: car
     slug: '{{car}}'
-    summary: '{{car}} · {{owner}}'
+    summary: '{{car}} · {{instagram}}'
     sortable_fields: [order, car, owner]
     fields:
-      - { name: car, label: Auto (marka i model), widget: string }
-      - { name: owner, label: Vlasnik, widget: string }
-      - { name: instagram, label: Instagram vlasnika (bez @), widget: string, required: false }
-      - { name: year, label: Godina, widget: number, value_type: int, min: 1950, max: 2030 }
-      - { name: hp, label: Snaga (KS), widget: number, value_type: int, min: 0 }
-      - { name: torque, label: Moment (Nm), widget: number, value_type: int, min: 0 }
+      - { name: car, label: Auto (marka i model), widget: string, hint: 'Npr. "BMW E46 330d". Prikazuje se ispod boksa.' }
+      - { name: instagram, label: Instagram (bez @), widget: string, required: false, hint: 'Samo korisničko ime, npr. midnight_crew_livno. Klik na boks vodi na taj profil. Prazno = "Bez Instagrama".' }
+      - { name: image, label: Slika auta, widget: image, required: false, hint: 'Najbolje PNG bez pozadine, auto sa strane ili sprijeda. Manje verzije za mobitel se rade same.' }
+      - { name: order, label: Redoslijed (broj boksa), widget: number, value_type: int, default: 10, hint: 'Manji broj = raniji boks. "Sve" na stranici slaže po ovome, "A–Z" po imenu auta.' }
+      - { name: owner, label: Vlasnik, widget: string, required: false }
+      - { name: year, label: Godina, widget: number, value_type: int, min: 1950, max: 2030, required: false }
+      - { name: hp, label: Snaga (KS), widget: number, value_type: int, min: 0, required: false }
+      - { name: torque, label: Moment (Nm), widget: number, value_type: int, min: 0, required: false }
       - name: drivetrain
         label: Pogon
         widget: select
         default: rwd
+        required: false
         options:
           - { label: Zadnji, value: rwd }
           - { label: Prednji, value: fwd }
           - { label: 4x4, value: awd }
       - { name: note, label: Kratak opis, widget: text, required: false }
-      - { name: image, label: Slika auta (PNG bez pozadine), widget: image, required: false }
-      - { name: order, label: Redoslijed, widget: number, value_type: int, default: 10 }
 
   - name: settings
     label: Postavke

@@ -55,7 +55,7 @@ Sadržaj je u `src/content/` (JSON datoteke), pa se može uređivati i ručno.
 
 ## Garaža, Dolazim, kalendar i narudžbe
 
-- **Garaža**: auta ekipe dodaješ u CMS-u (Garaža): ime auta, vlasnik, Instagram, snaga i fotka kao prozirni PNG (auto bez pozadine).
+- **Garaža**: stranica `/garaza` (na naslovnoj je samo traka "Uđi u garažu", ulazi se kroz animaciju garažnih vrata). Auta dodaješ u CMS-u (Garaža): ime auta, Instagram i fotka (najbolje PNG bez pozadine). Svaki auto dobije svoj boks; vrata se dignu mišem ili tapom, a klik vodi na Instagram vlasnika. Tri demo auta (`primjer-auto-*.json`) obriši kad dodaš prave.
 - **Dolazim**: svaki događaj s datumom i mjestom ima gumb "Dolazim"; prijave se spremaju u Cloudflare D1 bazu (`DB` u `wrangler.jsonc`, tablice se same naprave).
 - **Javi se (garaža)**: forma sprema poruke u D1 i šalje mail preko [Resenda](https://resend.com) (besplatan račun): secret `RESEND_API_KEY` i varijabla `MAIL_TO` (mail koji prima poruke; s `onboarding@resend.dev` pošiljateljem radi samo na mail kojim si se registrirao). Isto stiže i na Telegram ako je postavljen.
 - **Kalendar**: `/calendar.ics` je pretplatni kalendar svih meetova ("Sinkroniziraj kalendar"), a svaki događaj ima i "U kalendar" (.ics datoteka).

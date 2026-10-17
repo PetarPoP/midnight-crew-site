@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CalendarDoticsRouteImport } from './routes/calendar[.]ics'
+import { Route as GarazaRouteImport } from './routes/garaza'
 import { Route as ShopRouteImport } from './routes/shop'
 import { Route as ApiOrdersRouteImport } from './routes/api/orders'
 import { Route as ShopProductIdRouteImport } from './routes/shop_.$productId'
@@ -23,6 +24,11 @@ const IndexRoute = IndexRouteImport.update({
 const CalendarDoticsRoute = CalendarDoticsRouteImport.update({
   id: '/calendar.ics',
   path: '/calendar.ics',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GarazaRoute = GarazaRouteImport.update({
+  id: '/garaza',
+  path: '/garaza',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ShopRoute = ShopRouteImport.update({
@@ -44,6 +50,7 @@ const ShopProductIdRoute = ShopProductIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/calendar.ics': typeof CalendarDoticsRoute
+  '/garaza': typeof GarazaRoute
   '/shop': typeof ShopRoute
   '/api/orders': typeof ApiOrdersRoute
   '/shop/$productId': typeof ShopProductIdRoute
@@ -51,6 +58,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/calendar.ics': typeof CalendarDoticsRoute
+  '/garaza': typeof GarazaRoute
   '/shop': typeof ShopRoute
   '/api/orders': typeof ApiOrdersRoute
   '/shop/$productId': typeof ShopProductIdRoute
@@ -59,6 +67,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/calendar.ics': typeof CalendarDoticsRoute
+  '/garaza': typeof GarazaRoute
   '/shop': typeof ShopRoute
   '/api/orders': typeof ApiOrdersRoute
   '/shop_/$productId': typeof ShopProductIdRoute
@@ -66,13 +75,25 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/calendar.ics' | '/shop' | '/api/orders' | '/shop/$productId'
+    | '/'
+    | '/calendar.ics'
+    | '/garaza'
+    | '/shop'
+    | '/api/orders'
+    | '/shop/$productId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/calendar.ics' | '/shop' | '/api/orders' | '/shop/$productId'
+  to:
+    | '/'
+    | '/calendar.ics'
+    | '/garaza'
+    | '/shop'
+    | '/api/orders'
+    | '/shop/$productId'
   id:
     | '__root__'
     | '/'
     | '/calendar.ics'
+    | '/garaza'
     | '/shop'
     | '/api/orders'
     | '/shop_/$productId'
@@ -81,6 +102,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CalendarDoticsRoute: typeof CalendarDoticsRoute
+  GarazaRoute: typeof GarazaRoute
   ShopRoute: typeof ShopRoute
   ApiOrdersRoute: typeof ApiOrdersRoute
   ShopProductIdRoute: typeof ShopProductIdRoute
@@ -100,6 +122,13 @@ declare module '@tanstack/react-router' {
       path: '/calendar.ics'
       fullPath: '/calendar.ics'
       preLoaderRoute: typeof CalendarDoticsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/garaza': {
+      id: '/garaza'
+      path: '/garaza'
+      fullPath: '/garaza'
+      preLoaderRoute: typeof GarazaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/shop': {
@@ -129,6 +158,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CalendarDoticsRoute: CalendarDoticsRoute,
+  GarazaRoute: GarazaRoute,
   ShopRoute: ShopRoute,
   ApiOrdersRoute: ApiOrdersRoute,
   ShopProductIdRoute: ShopProductIdRoute,

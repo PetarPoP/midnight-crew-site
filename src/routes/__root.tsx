@@ -11,6 +11,7 @@ import { CartProvider } from '~/lib/cart'
 import { useGameKeys } from '~/lib/useGameKeys'
 import { RevealObserver } from '~/components/RevealObserver'
 import { CartToast } from '~/components/CartToast'
+import { GarageDoorProvider } from '~/components/GarageDoor'
 import { QuickViews } from '~/components/overlay/QuickViews'
 import { eventById, productById } from '~/lib/data'
 import { ogMeta } from '~/lib/og'
@@ -76,9 +77,11 @@ function RootComponent() {
   return (
     <RootDocument>
       <CartProvider>
-        <Outlet />
-        <QuickViews />
-        <CartToast />
+        <GarageDoorProvider>
+          <Outlet />
+          <QuickViews />
+          <CartToast />
+        </GarageDoorProvider>
       </CartProvider>
       <RevealObserver />
     </RootDocument>
