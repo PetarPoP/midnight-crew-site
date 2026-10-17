@@ -12,7 +12,6 @@ const CREDITS = [
 
 const NAV = [
   { label: 'Kampanja', to: '/', hash: 'top' },
-  { label: 'Galerija', to: '/', hash: 'galerija' },
   { label: 'Karta', to: '/', hash: 'karta' },
   { label: 'Garaža', to: '/garaza', hash: undefined },
   { label: 'Događaji', to: '/', hash: 'dogadaji' },

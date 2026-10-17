@@ -8,7 +8,6 @@ import { useGarageDoor } from './GarageDoor'
 
 const TABS = [
   { label: 'Kampanja', to: '/', hash: 'top' },
-  { label: 'Galerija', to: '/', hash: 'galerija' },
   { label: 'Bili smo', to: '/', hash: 'karta' },
   { label: 'Garaža', to: '/garaza', hash: undefined },
   { label: 'Shop', to: '/shop', hash: undefined },
