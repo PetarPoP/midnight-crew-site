@@ -122,7 +122,7 @@ function Box({ car, no, index, open, onOpen }: { car: Car; no: number; index: nu
   const inner = (
     <>
       <div className="relative aspect-[4/3] overflow-hidden bg-[linear-gradient(180deg,#0b0910,#2a1f3a)] shadow-[0_0_0_3px_#fff]">
-        <div className="absolute inset-x-[6%] bottom-[4%] h-3/4">
+        <div className={car.image ? 'absolute inset-0' : 'absolute inset-x-[6%] bottom-[4%] h-3/4'}>
           {car.image ? (
             <Picture
               src={car.image}
@@ -130,7 +130,7 @@ function Box({ car, no, index, open, onOpen }: { car: Car; no: number; index: nu
               sizes="(min-width:1280px) 25vw, (min-width:768px) 33vw, 50vw"
               loading={index < 6 ? 'eager' : 'lazy'}
               draggable={false}
-              className="size-full object-contain object-bottom drop-shadow-[0_14px_14px_rgba(0,0,0,.6)]"
+              className="size-full object-cover"
             />
           ) : (
             <div className="flex size-full flex-col items-center justify-center gap-1.5 text-muted">
