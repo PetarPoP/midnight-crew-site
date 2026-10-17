@@ -1,10 +1,11 @@
-import { useNavigate } from '@tanstack/react-router'
+import { useNavigate, useRouterState } from '@tanstack/react-router'
 import { GARAGE_PAGE } from '~/lib/data'
-import { createContext, useCallback, useContext, useRef, useState, type AnchorHTMLAttributes, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type AnchorHTMLAttributes, type ReactNode } from 'react'
 
 /**
- * Garage-door transition into /garaza: the door drops shut (1000ms), stays
- * closed while the page changes behind it (~500ms), then rolls up (1300ms).
+ * Garage-door transition into and out of /garaza: the door drops shut (1000ms),
+ * stays closed while the page changes behind it (~500ms), then rolls up (1300ms).
+ * Leaving the garage through any link on it plays the door too.
  * The overlay lives in the root layout so it stays mounted through navigation.
  */
 type Phase = 'idle' | 'down' | 'hold' | 'up'
@@ -21,6 +22,7 @@ const wait = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
 export function GarageDoorProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate()
+  const pathname = useRouterState({ select: (s) => s.location.pathname })
   const [phase, setPhase] = useState<Phase>('idle')
   const busy = useRef(false)
 
@@ -29,7 +31,7 @@ export function GarageDoorProvider({ children }: { children: ReactNode }) {
       if (busy.current) return
       // Plays even with the OS "reduce motion" setting: Windows turns that on whenever its animation effects are off.
       if (!GARAGE_PAGE.door_animation) {
-        navigate({ to })
+        navigate({ href: to })
         return
       }
       busy.current = true
@@ -37,8 +39,11 @@ export function GarageDoorProvider({ children }: { children: ReactNode }) {
       await wait(DOWN_MS)
       setPhase('hold')
       // Change page while the door is shut; keep it shut at least HOLD_MS.
-      await Promise.all([navigate({ to }), wait(HOLD_MS)])
-      window.scrollTo(0, 0)
+      await Promise.all([navigate({ href: to }), wait(HOLD_MS)])
+      const hash = to.split('#')[1]
+      const target = hash ? document.getElementById(hash) : null
+      if (target) target.scrollIntoView({ block: 'start' })
+      else window.scrollTo(0, 0)
       setPhase('up')
       await wait(UP_MS)
       setPhase('idle')
@@ -46,6 +51,23 @@ export function GarageDoorProvider({ children }: { children: ReactNode }) {
     },
     [navigate],
   )
+
+  // On the garage page, links to other pages close the door first. Capture phase runs before the router's own link handler.
+  useEffect(() => {
+    if (pathname !== '/garaza') return
+    const onClick = (e: MouseEvent) => {
+      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+      const a = (e.target as Element | null)?.closest?.('a[href]') as HTMLAnchorElement | null
+      if (!a || (a.target && a.target !== '_self') || a.hasAttribute('download')) return
+      const url = new URL(a.href, location.href)
+      if (url.origin !== location.origin || url.pathname === '/garaza') return
+      e.preventDefault()
+      e.stopPropagation()
+      enter(url.pathname + url.search + url.hash)
+    }
+    window.addEventListener('click', onClick, true)
+    return () => window.removeEventListener('click', onClick, true)
+  }, [pathname, enter])
 
   return (
     <Ctx.Provider value={{ enter }}>

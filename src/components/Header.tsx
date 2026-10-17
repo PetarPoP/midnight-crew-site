@@ -56,8 +56,8 @@ export function Header({ overlay = false }: { overlay?: boolean }) {
       if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
       else window.scrollTo({ top: 0, behavior: 'smooth' })
       history.replaceState(history.state, '', t.hash ? `#${t.hash}` : t.to)
-    } else if (t.to === '/garaza') {
-      door.enter()
+    } else if (t.to === '/garaza' || pathname === '/garaza') {
+      door.enter(t.hash ? `${t.to}#${t.hash}` : t.to)
     } else {
       navigate({ to: t.to, hash: t.hash })
     }
